@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2025-08-05
+
 ### Added
 - 📊 **Verbose Logging** with `-verbose` flag for detailed execution visibility
 - ⏱️ **Performance Timing** for data generation operations
@@ -83,6 +85,8 @@ To create a new release:
 ### CHANGELOG.md Format Requirements:
 ```markdown
 ## [Unreleased]
+
+## [1.2.0] - 2025-08-05
 
 ### Added
 - 📊 **New Feature** with detailed description
