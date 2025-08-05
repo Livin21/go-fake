@@ -39,11 +39,12 @@ go install github.com/livin21/go-fake/cmd/generate@latest
 # Generate JSON from JSON schema
 ./bin/go-fake -schema examples/sample.json -output users.json
 
-# Generate CSV from SQL schema  
-./bin/go-fake -schema examples/sample.sql -output data
+# Generate multi-table CSV from SQL schema (creates directory)
+./bin/go-fake -schema examples/sample.sql -output company_data
+# Creates: company_data/users.csv, company_data/products.csv, company_data/orders.csv
 
 # Specify number of rows
-./bin/go-fake -schema examples/comprehensive.json -rows 1000 -output large-dataset.json
+./bin/go-fake -schema examples/comprehensive.json -rows 1000 -output large-dataset
 ```
 
 ### Output Format
@@ -52,11 +53,12 @@ The tool automatically determines the output format based on your input schema:
 
 - **JSON Schema Input** (`.json`) → **JSON Output Files**
 - **SQL Schema Input** (`.sql`) → **CSV Output Files**
+- **Multi-Table Schemas** → **Directory with separate files per table**
 
 ### Command Line Options
 
 - `-schema string`: Path to the schema file (JSON or SQL) - **Required**
-- `-output string`: Path to the output file (default: "output.csv" or "output.json")
+- `-output string`: Output directory for multi-table schemas or file path for single-table schemas (default: "output.csv" or "output.json")
 - `-rows int`: Number of rows to generate (default: 100)
 - `-h`: Show help message with supported data types
 
@@ -154,9 +156,13 @@ CREATE TABLE products (
 );
 ```
 
-**Multi-Table Output**: When using SQL schemas with multiple tables, the tool automatically generates separate CSV files for each table:
-- `output_users.csv`
-- `output_products.csv`
+**Multi-Table Output**: When using SQL schemas with multiple tables, the tool automatically creates an output directory with separate files for each table:
+```
+output/
+├── users.csv
+├── products.csv
+└── orders.csv
+```
 
 ## Relationship Constraints 🔗
 
@@ -199,10 +205,10 @@ user_id INTEGER NOT NULL REFERENCES users(id)
 Example with relationships:
 ```bash
 ./go-fake -schema examples/relationships.json -rows 10 -output company_data
-# Generates:
-# - company_data_users.json (primary table)
-# - company_data_departments.json (primary table) 
-# - company_data_employees.json (references users and departments)
+# Creates directory: company_data/
+# - company_data/users.json (primary table)
+# - company_data/departments.json (primary table) 
+# - company_data/employees.json (references users and departments)
 ```
 
 For detailed relationship constraint documentation, see **[RELATIONSHIPS.md](RELATIONSHIPS.md)**.

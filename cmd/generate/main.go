@@ -15,7 +15,7 @@ const version = "1.0.0"
 
 func main() {
 	schemaFile := flag.String("schema", "", "Path to the schema file (JSON or SQL)")
-	outputFile := flag.String("output", "output.csv", "Path to the output CSV file")
+	outputFile := flag.String("output", "output.csv", "Output directory for multi-table schemas or file path for single-table schemas")
 	numRows := flag.Int("rows", 100, "Number of rows to generate")
 	showVersion := flag.Bool("version", false, "Show version information")
 	flag.Usage = func() {
@@ -23,7 +23,8 @@ func main() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [OPTIONS]\n\n", "go-fake")
 		fmt.Fprintf(flag.CommandLine.Output(), "Output Format:\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  JSON schemas (.json) -> JSON output files\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "  SQL schemas (.sql)   -> CSV output files\n\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  SQL schemas (.sql)   -> CSV output files\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  Multi-table schemas  -> Creates directory with separate files per table\n\n")
 		flag.PrintDefaults()
 		fmt.Fprintf(flag.CommandLine.Output(), "\nSupported field types:\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  string, varchar, text - Random names\n")

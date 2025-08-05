@@ -49,6 +49,12 @@ func GenerateDataFiles(schemaInterface interface{}, numRows int, outputPath stri
 
 	// Handle multi-table schemas (SQL)
 	if len(s.Tables) > 0 {
+		// Create output directory
+		outputDir := getOutputDirectory(outputPath)
+		if err := os.MkdirAll(outputDir, 0755); err != nil {
+			return nil, fmt.Errorf("error creating output directory %s: %v", outputDir, err)
+		}
+
 		// First pass: Generate data for tables without dependencies
 		for _, table := range s.Tables {
 			if !hasReferences(table.Fields) {
@@ -67,17 +73,17 @@ func GenerateDataFiles(schemaInterface interface{}, numRows int, outputPath stri
 			}
 		}
 
-		// Write all generated data to files
+		// Write all generated data to files in the output directory
 		for _, table := range s.Tables {
 			var filename string
 			var err error
 			
 			if format == FormatJSON {
-				filename = getOutputFilename(outputPath, table.Name, ".json")
+				filename = filepath.Join(outputDir, table.Name+".json")
 				err = writeJSONFileArray(filename, relData.TableData[table.Name])
 			} else {
 				data := convertToStringSlicesWithHeaders(relData.TableData[table.Name], table.Fields)
-				filename = getOutputFilename(outputPath, table.Name, ".csv")
+				filename = filepath.Join(outputDir, table.Name+".csv")
 				err = csv.WriteCSV(filename, data)
 			}
 			
@@ -197,6 +203,20 @@ func generateTableDataAsJSON(fields []schema.Field, numRows int, tableName strin
 	return map[string]interface{}{
 		tableName: records,
 	}
+}
+
+// getOutputDirectory determines the output directory path
+func getOutputDirectory(outputPath string) string {
+	if outputPath == "" {
+		return "output"
+	}
+	
+	// Remove file extension if present
+	if ext := filepath.Ext(outputPath); ext != "" {
+		outputPath = strings.TrimSuffix(outputPath, ext)
+	}
+	
+	return outputPath
 }
 
 // getOutputFilename generates the output filename based on table name and extension
