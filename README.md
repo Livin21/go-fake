@@ -16,9 +16,49 @@ A powerful CLI tool for generating fake data based on JSON or SQL schema definit
 - **🔄 Dependency Resolution**: Automatic handling of table dependencies and foreign keys
 - **🛠️ Customizable Output**: Specify number of rows and output file location
 - **✅ Type-Safe JSON**: Proper data types in JSON output (numbers, booleans, strings)
+- **🚀 Cross-Platform Releases**: Automated releases for Linux, Windows, macOS (AMD64/ARM64)
 - **⚡ Fast & Lightweight**: Built with Go 1.24 for optimal performance
 
 ## Installation 🚀
+
+### Pre-built Binaries (Recommended)
+
+Download the latest release for your platform from [GitHub Releases](https://github.com/Livin21/go-fake/releases):
+
+**Linux:**
+```bash
+# AMD64
+wget https://github.com/Livin21/go-fake/releases/latest/download/go-fake-linux-amd64
+chmod +x go-fake-linux-amd64
+sudo mv go-fake-linux-amd64 /usr/local/bin/go-fake
+
+# ARM64
+wget https://github.com/Livin21/go-fake/releases/latest/download/go-fake-linux-arm64
+chmod +x go-fake-linux-arm64
+sudo mv go-fake-linux-arm64 /usr/local/bin/go-fake
+```
+
+**macOS:**
+```bash
+# Intel Macs
+wget https://github.com/Livin21/go-fake/releases/latest/download/go-fake-darwin-amd64
+chmod +x go-fake-darwin-amd64
+sudo mv go-fake-darwin-amd64 /usr/local/bin/go-fake
+
+# Apple Silicon Macs
+wget https://github.com/Livin21/go-fake/releases/latest/download/go-fake-darwin-arm64
+chmod +x go-fake-darwin-arm64
+sudo mv go-fake-darwin-arm64 /usr/local/bin/go-fake
+```
+
+**Windows:**
+Download the appropriate `.exe` file for your architecture and add it to your PATH.
+
+### Using Go Install
+
+```bash
+go install github.com/Livin21/go-fake/cmd/generate@latest
+```
 
 ### From Source
 
@@ -26,12 +66,6 @@ A powerful CLI tool for generating fake data based on JSON or SQL schema definit
 git clone https://github.com/livin21/go-fake.git
 cd go-fake
 make build
-```
-
-### Using Go Install
-
-```bash
-go install github.com/livin21/go-fake/cmd/generate@latest
 ```
 
 ## Usage 📖
@@ -433,6 +467,15 @@ make deps
 # Build the application
 make build
 
+# Build with release optimizations
+make build-release
+
+# Build for all platforms
+make release
+
+# Build and test release locally
+make release-local
+
 # Run tests
 make test
 
@@ -442,6 +485,34 @@ make run-examples
 # Clean build artifacts
 make clean
 ```
+
+### Release Process
+
+This project uses automated releases with GitHub Actions:
+
+1. **Create a new release:**
+   ```bash
+   ./scripts/release.sh v1.2.0
+   ```
+
+2. **GitHub Actions automatically:**
+   - Builds binaries for 6 platforms (Linux, Windows, macOS - AMD64/ARM64)
+   - Runs comprehensive tests
+   - Creates GitHub release with binaries and checksums
+   - Updates Go module registry
+
+3. **Manual release (if needed):**
+   ```bash
+   # Update version in cmd/generate/main.go
+   # Commit and tag
+   git tag v1.2.0
+   git push origin v1.2.0
+   ```
+
+**Supported Platforms:**
+- Linux (AMD64, ARM64)
+- Windows (AMD64, ARM64) 
+- macOS (Intel, Apple Silicon)
 
 ### Adding New Data Types
 
@@ -481,6 +552,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] ✅ **Relationship Constraints**: Foreign key relationships between fields
 - [x] ✅ **Directory-based Output**: Organized multi-table file generation
 - [x] ✅ **Format Override**: JSON/CSV output format control regardless of input schema
+- [x] ✅ **Automated Releases**: GitHub Actions pipeline with multi-platform binaries
 - [ ] 🔄 **Support for more output formats** (XML, Parquet, Avro)
 - [ ] 🔄 **Custom faker patterns and templates**
 - [ ] 🔄 **Database direct export** (PostgreSQL, MySQL, MongoDB)

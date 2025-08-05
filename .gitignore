@@ -19,6 +19,10 @@ go.work
 
 # Build artifacts
 bin/
+build/
+dist/
+release/
+bin/
 dist/
 build/
 
