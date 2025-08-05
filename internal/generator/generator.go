@@ -24,6 +24,12 @@ const (
 	FormatJSON
 )
 
+// RelationshipData stores generated data for relationship constraints
+type RelationshipData struct {
+	TableData map[string][]map[string]interface{} // table_name -> rows of data
+	References map[string][]interface{} // table.field -> list of generated values
+}
+
 // GenerateDataFiles generates fake data and creates separate files for each table.
 // The format is determined by the outputFormat parameter.
 func GenerateDataFiles(schemaInterface interface{}, numRows int, outputPath string, format OutputFormat) ([]string, error) {
@@ -33,20 +39,44 @@ func GenerateDataFiles(schemaInterface interface{}, numRows int, outputPath stri
 		return nil, ErrInvalidSchema
 	}
 
+	// Initialize relationship data tracker
+	relData := &RelationshipData{
+		TableData: make(map[string][]map[string]interface{}),
+		References: make(map[string][]interface{}),
+	}
+
 	var generatedFiles []string
 
 	// Handle multi-table schemas (SQL)
 	if len(s.Tables) > 0 {
+		// First pass: Generate data for tables without dependencies
+		for _, table := range s.Tables {
+			if !hasReferences(table.Fields) {
+				data := generateTableDataWithConstraints(table.Fields, numRows, table.Name, relData, s.Relationships)
+				relData.TableData[table.Name] = data
+				populateReferences(table.Name, table.Fields, data, relData)
+			}
+		}
+
+		// Second pass: Generate data for tables with dependencies
+		for _, table := range s.Tables {
+			if hasReferences(table.Fields) {
+				data := generateTableDataWithConstraints(table.Fields, numRows, table.Name, relData, s.Relationships)
+				relData.TableData[table.Name] = data
+				populateReferences(table.Name, table.Fields, data, relData)
+			}
+		}
+
+		// Write all generated data to files
 		for _, table := range s.Tables {
 			var filename string
 			var err error
 			
 			if format == FormatJSON {
-				data := generateTableDataAsJSON(table.Fields, numRows, table.Name)
 				filename = getOutputFilename(outputPath, table.Name, ".json")
-				err = writeJSONFile(filename, data)
+				err = writeJSONFileArray(filename, relData.TableData[table.Name])
 			} else {
-				data := generateTableData(table.Fields, numRows)
+				data := convertToStringSlicesWithHeaders(relData.TableData[table.Name], table.Fields)
 				filename = getOutputFilename(outputPath, table.Name, ".csv")
 				err = csv.WriteCSV(filename, data)
 			}
@@ -235,4 +265,188 @@ func generateFakeValue(field schema.Field) string {
 	default:
 		return faker.GenerateName() // Default to name for unknown types
 	}
+}
+
+// hasReferences checks if any field in the table has reference constraints
+func hasReferences(fields []schema.Field) bool {
+	for _, field := range fields {
+		if field.Constraints != nil && field.Constraints.References != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// generateTableDataWithConstraints generates table data while respecting relationship constraints
+func generateTableDataWithConstraints(fields []schema.Field, numRows int, tableName string, relData *RelationshipData, relationships []schema.Relationship) []map[string]interface{} {
+	var rows []map[string]interface{}
+	
+	for i := 0; i < numRows; i++ {
+		row := make(map[string]interface{})
+		
+		for _, field := range fields {
+			value := generateConstrainedValue(field, relData, tableName, i)
+			row[field.Name] = value
+		}
+		
+		rows = append(rows, row)
+	}
+	
+	return rows
+}
+
+// generateConstrainedValue generates a value for a field considering its constraints
+func generateConstrainedValue(field schema.Field, relData *RelationshipData, tableName string, rowIndex int) interface{} {
+	// Handle reference constraints (foreign keys)
+	if field.Constraints != nil && field.Constraints.References != nil {
+		refKey := field.Constraints.References.Table + "." + field.Constraints.References.Field
+		if values, exists := relData.References[refKey]; exists && len(values) > 0 {
+			// Pick a random value from the referenced table
+			return values[rand.IntN(len(values))]
+		}
+	}
+	
+	// Handle dependent fields
+	if field.Constraints != nil && field.Constraints.DependsOn != "" {
+		// This could be used for conditional generation based on other fields
+		// For now, we'll generate normally but this can be extended
+	}
+	
+	// Handle unique count constraints
+	if field.Constraints != nil && field.Constraints.UniqueCount != nil {
+		uniqueValues := generateUniqueValues(field, *field.Constraints.UniqueCount)
+		return uniqueValues[rowIndex % len(uniqueValues)]
+	}
+	
+	// Generate value based on type with min/max constraints
+	return generateConstrainedFakeValue(field)
+}
+
+// generateConstrainedFakeValue generates a fake value with min/max constraints
+func generateConstrainedFakeValue(field schema.Field) interface{} {
+	switch field.Type {
+	case "string", "varchar", "text":
+		return faker.GenerateName()
+	case "email":
+		return faker.GenerateEmail()
+	case "int", "integer", "serial":
+		min := 1
+		max := 1000
+		if field.Constraints != nil {
+			if field.Constraints.MinValue != nil {
+				min = *field.Constraints.MinValue
+			}
+			if field.Constraints.MaxValue != nil {
+				max = *field.Constraints.MaxValue
+			}
+		}
+		return rand.IntN(max-min+1) + min
+	case "float", "decimal", "numeric":
+		value, _ := strconv.ParseFloat(faker.GenerateFloat(), 64)
+		return value
+	case "bool", "boolean":
+		return rand.IntN(2) == 1
+	case "uuid":
+		return faker.GenerateUUID()
+	case "phone":
+		return faker.GeneratePhone()
+	case "address":
+		return faker.GenerateAddress()
+	case "company":
+		return faker.GenerateCompany()
+	case "date", "timestamp":
+		return faker.GenerateDate()
+	default:
+		return faker.GenerateName()
+	}
+}
+
+// generateUniqueValues generates a set of unique values for a field
+func generateUniqueValues(field schema.Field, count int) []interface{} {
+	seen := make(map[interface{}]bool)
+	values := make([]interface{}, 0, count)
+	
+	for len(values) < count {
+		value := generateConstrainedFakeValue(field)
+		if !seen[value] {
+			seen[value] = true
+			values = append(values, value)
+		}
+	}
+	
+	return values
+}
+
+// populateReferences stores generated values for use as foreign key references
+func populateReferences(tableName string, fields []schema.Field, data []map[string]interface{}, relData *RelationshipData) {
+	for _, field := range fields {
+		refKey := tableName + "." + field.Name
+		values := make([]interface{}, len(data))
+		
+		for i, row := range data {
+			values[i] = row[field.Name]
+		}
+		
+		relData.References[refKey] = values
+	}
+}
+
+// convertToStringSlicesWithHeaders converts map data to string slices for CSV output with headers
+func convertToStringSlicesWithHeaders(data []map[string]interface{}, fields []schema.Field) [][]string {
+	// Create result slice with space for header + data rows
+	result := make([][]string, len(data)+1)
+	
+	// Create header row
+	header := make([]string, len(fields))
+	for i, field := range fields {
+		header[i] = field.Name
+	}
+	result[0] = header
+	
+	// Create data rows
+	for i, row := range data {
+		rowData := make([]string, len(fields))
+		for j, field := range fields {
+			if value, exists := row[field.Name]; exists {
+				rowData[j] = fmt.Sprintf("%v", value)
+			}
+		}
+		result[i+1] = rowData
+	}
+	
+	return result
+}
+
+// convertToStringSlices converts map data to string slices for CSV output
+func convertToStringSlices(data []map[string]interface{}, fields []schema.Field) [][]string {
+	result := make([][]string, len(data))
+	
+	for i, row := range data {
+		rowData := make([]string, len(fields))
+		for j, field := range fields {
+			if value, exists := row[field.Name]; exists {
+				rowData[j] = fmt.Sprintf("%v", value)
+			}
+		}
+		result[i] = rowData
+	}
+	
+	return result
+}
+
+// writeJSONFileArray writes JSON array data to a file
+func writeJSONFileArray(filename string, data []map[string]interface{}) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	jsonData := map[string]interface{}{
+		"data": data,
+	}
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(jsonData)
 }

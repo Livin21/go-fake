@@ -1,0 +1,131 @@
+{
+  "tables": [
+    {
+      "name": "users",
+      "fields": [
+        {
+          "name": "id",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "min_value": 1,
+            "max_value": 1000
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "email",
+          "type": "email",
+          "required": true
+        },
+        {
+          "name": "age",
+          "type": "int",
+          "required": false,
+          "constraints": {
+            "min_value": 18,
+            "max_value": 80
+          }
+        }
+      ]
+    },
+    {
+      "name": "departments",
+      "fields": [
+        {
+          "name": "id",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "unique_count": 5
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "constraints": {
+            "unique_count": 5
+          }
+        },
+        {
+          "name": "budget",
+          "type": "float",
+          "required": true,
+          "constraints": {
+            "min_value": 50000,
+            "max_value": 500000
+          }
+        }
+      ]
+    },
+    {
+      "name": "employees",
+      "fields": [
+        {
+          "name": "id",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "references": {
+              "table": "users",
+              "field": "id"
+            }
+          }
+        },
+        {
+          "name": "department_id",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "references": {
+              "table": "departments",
+              "field": "id"
+            }
+          }
+        },
+        {
+          "name": "salary",
+          "type": "float",
+          "required": true,
+          "constraints": {
+            "min_value": 30000,
+            "max_value": 150000
+          }
+        },
+        {
+          "name": "hire_date",
+          "type": "date",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "foreign_key",
+      "from_table": "employees",
+      "from_field": "user_id",
+      "to_table": "users",
+      "to_field": "id",
+      "cardinality": "many:1"
+    },
+    {
+      "type": "foreign_key", 
+      "from_table": "employees",
+      "from_field": "department_id",
+      "to_table": "departments", 
+      "to_field": "id",
+      "cardinality": "many:1"
+    }
+  ]
+}

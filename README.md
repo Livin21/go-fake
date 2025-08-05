@@ -5,12 +5,15 @@ A powerful CLI tool for generating fake data based on JSON or SQL schema definit
 ## Features ✨
 
 - **Multiple Schema Formats**: Support for both JSON and SQL schema definitions
-- **Smart Output Format**: JSON schemas → JSON files, SQL schemas → CSV files
+- **Relationship Constraints**: Foreign key relationships and referential integrity
+- **Field Constraints**: Min/max values, unique counts, and data validation
+- **Smart Output Format**: JSON schemas → JSON files, SQL schemas → CSV files  
 - **Multi-Table Support**: Generate separate files for each table in SQL schemas
 - **Rich Data Types**: 17+ supported data types for realistic fake data generation
+- **Dependency Resolution**: Automatic handling of table dependencies and foreign keys
 - **Customizable Output**: Specify number of rows and output file location
 - **Type-Safe JSON**: Proper data types in JSON output (numbers, booleans, strings)
-- **Fast & Lightweight**: Built with Go for optimal performance
+- **Fast & Lightweight**: Built with Go 1.24 for optimal performance
 
 ## Installation 🚀
 
@@ -61,23 +64,64 @@ The tool automatically determines the output format based on your input schema:
 
 ### JSON Schema Format
 
+Support for single-table and multi-table schemas with relationship constraints:
+
 ```json
 {
-  "fields": [
+  "tables": [
     {
-      "name": "id",
-      "type": "uuid",
-      "required": true
+      "name": "users",
+      "fields": [
+        {
+          "name": "id",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "min_value": 1,
+            "max_value": 1000
+          }
+        },
+        {
+          "name": "email",
+          "type": "email", 
+          "required": true
+        },
+        {
+          "name": "age",
+          "type": "int",
+          "required": false,
+          "constraints": {
+            "min_value": 18,
+            "max_value": 80
+          }
+        }
+      ]
     },
     {
-      "name": "email",
-      "type": "email", 
-      "required": true
-    },
+      "name": "employees", 
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "constraints": {
+            "references": {
+              "table": "users",
+              "field": "id"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "relationships": [
     {
-      "name": "age",
-      "type": "int",
-      "required": false
+      "type": "foreign_key",
+      "from_table": "employees",
+      "from_field": "user_id",
+      "to_table": "users", 
+      "to_field": "id",
+      "cardinality": "many:1"
     }
   ]
 }
@@ -85,14 +129,21 @@ The tool automatically determines the output format based on your input schema:
 
 ### SQL Schema Format
 
-Standard CREATE TABLE syntax:
+Standard CREATE TABLE syntax with relationship constraints:
 
 ```sql
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    age INTEGER CHECK (age >= 18 AND age <= 80)
+);
+
+CREATE TABLE employees (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    salary DECIMAL(10,2) CHECK (salary >= 30000 AND salary <= 150000),
+    hire_date DATE NOT NULL
 );
 
 CREATE TABLE products (
@@ -106,6 +157,55 @@ CREATE TABLE products (
 **Multi-Table Output**: When using SQL schemas with multiple tables, the tool automatically generates separate CSV files for each table:
 - `output_users.csv`
 - `output_products.csv`
+
+## Relationship Constraints 🔗
+
+The tool supports sophisticated relationship constraints for generating realistic, interconnected data:
+
+### Foreign Key Relationships
+
+**JSON Schema**:
+```json
+{
+  "name": "user_id",
+  "type": "int", 
+  "constraints": {
+    "references": {
+      "table": "users",
+      "field": "id"
+    }
+  }
+}
+```
+
+**SQL Schema** (automatically parsed):
+```sql
+user_id INTEGER NOT NULL REFERENCES users(id)
+```
+
+### Field Constraints
+
+- **Min/Max Values**: `"min_value": 18, "max_value": 65`
+- **Unique Count**: `"unique_count": 5` (generate only 5 unique values)
+- **Value Ranges**: `CHECK (salary >= 30000 AND salary <= 150000)`
+
+### Generation Order
+
+1. **Dependency Analysis**: Identifies table relationships
+2. **Primary Tables First**: Generates tables without dependencies 
+3. **Foreign Key Resolution**: Uses actual generated values for references
+4. **Referential Integrity**: Guarantees all foreign keys are valid
+
+Example with relationships:
+```bash
+./go-fake -schema examples/relationships.json -rows 10 -output company_data
+# Generates:
+# - company_data_users.json (primary table)
+# - company_data_departments.json (primary table) 
+# - company_data_employees.json (references users and departments)
+```
+
+For detailed relationship constraint documentation, see **[RELATIONSHIPS.md](RELATIONSHIPS.md)**.
 
 ## Supported Data Types 🎯
 
