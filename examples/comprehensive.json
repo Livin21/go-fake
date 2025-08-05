@@ -1,0 +1,74 @@
+{
+  "fields": [
+    {
+      "name": "id",
+      "type": "uuid",
+      "required": true
+    },
+    {
+      "name": "first_name",
+      "type": "firstname",
+      "required": true
+    },
+    {
+      "name": "last_name",
+      "type": "lastname",
+      "required": true
+    },
+    {
+      "name": "email",
+      "type": "email",
+      "required": true
+    },
+    {
+      "name": "phone",
+      "type": "phone",
+      "required": false
+    },
+    {
+      "name": "company",
+      "type": "company",
+      "required": false
+    },
+    {
+      "name": "address",
+      "type": "address",
+      "required": false
+    },
+    {
+      "name": "city",
+      "type": "city",
+      "required": false
+    },
+    {
+      "name": "state",
+      "type": "state",
+      "required": false
+    },
+    {
+      "name": "zipcode",
+      "type": "zipcode",
+      "required": false
+    },
+    {
+      "name": "birth_date",
+      "type": "date",
+      "required": false
+    },
+    {
+      "name": "created_at",
+      "type": "datetime",
+      "required": true
+    },
+    {
+      "name": "salary",
+      "type": "price",
+      "required": false
+    },
+    {
+      "name": "is_active",
+      "type": "bool",
+      "required": true
+    }
+  ]
+}
