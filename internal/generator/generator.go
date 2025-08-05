@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go-fake/internal/schema"
 	"go-fake/pkg/csv"
+	"go-fake/pkg/logger"
 	"math/rand/v2"
 	"os"
 	"path/filepath"
@@ -34,6 +35,8 @@ type RelationshipData struct {
 // GenerateDataFiles generates fake data and creates separate files for each table.
 // The format is determined by the outputFormat parameter.
 func GenerateDataFiles(schemaInterface interface{}, numRows int, outputPath string, format OutputFormat) ([]string, error) {
+	logger.Debug("Generating data files for schema")
+	
 	// Convert the schema to the expected type
 	s, ok := schemaInterface.(schema.Schema)
 	if !ok {
@@ -45,37 +48,54 @@ func GenerateDataFiles(schemaInterface interface{}, numRows int, outputPath stri
 		TableData: make(map[string][]map[string]interface{}),
 		References: make(map[string][]interface{}),
 	}
+	
+	logger.Debug("Initialized relationship data tracker")
 
 	var generatedFiles []string
 
 	// Handle multi-table schemas (SQL)
 	if len(s.Tables) > 0 {
+		logger.Debug("Processing multi-table schema with %d tables", len(s.Tables))
+		
 		// Create output directory
 		outputDir := getOutputDirectory(outputPath)
+		logger.Debug("Creating output directory: %s", outputDir)
 		if err := os.MkdirAll(outputDir, 0755); err != nil {
 			return nil, fmt.Errorf("error creating output directory %s: %v", outputDir, err)
 		}
 
 		// First pass: Generate data for tables without dependencies
+		logger.Debug("First pass: generating data for independent tables")
+		independentCount := 0
 		for _, table := range s.Tables {
 			if !hasReferences(table.Fields) {
+				logger.Debug("Generating data for independent table: %s", table.Name)
 				data := generateTableDataWithConstraints(table.Fields, numRows, table.Name, relData, s.Relationships)
 				relData.TableData[table.Name] = data
 				populateReferences(table.Name, table.Fields, data, relData)
+				independentCount++
 			}
 		}
+		logger.Debug("Generated data for %d independent tables", independentCount)
 
 		// Second pass: Generate data for tables with dependencies
+		logger.Debug("Second pass: generating data for dependent tables")
+		dependentCount := 0
 		for _, table := range s.Tables {
 			if hasReferences(table.Fields) {
+				logger.Debug("Generating data for dependent table: %s", table.Name)
 				data := generateTableDataWithConstraints(table.Fields, numRows, table.Name, relData, s.Relationships)
 				relData.TableData[table.Name] = data
 				populateReferences(table.Name, table.Fields, data, relData)
+				dependentCount++
 			}
 		}
+		logger.Debug("Generated data for %d dependent tables", dependentCount)
 
 		// Write all generated data to files in the output directory
-		for _, table := range s.Tables {
+		logger.Debug("Writing data to files")
+		for i, table := range s.Tables {
+			logger.Progress(i+1, len(s.Tables), "Writing table files")
 			var filename string
 			var err error
 			
@@ -328,9 +348,14 @@ func GenerateWithAI(s *schema.Schema, numRows int, outputPath string) ([]string,
 
 // GenerateWithAIAndFormat generates fake data using AI-enhanced intelligent field inference with format override
 func GenerateWithAIAndFormat(s *schema.Schema, numRows int, outputPath string, formatOverride string) ([]string, error) {
+	logger.Debug("Enabling AI-enhanced field inference")
+	
 	// Enable AI mode on the global field inference instance
 	if fieldInference.aiClient != nil {
 		fieldInference.aiClient.config.Enabled = true
+		logger.Debug("AI client enabled for enhanced field inference")
+	} else {
+		logger.Debug("AI client not available, falling back to standard inference")
 	}
 	
 	// Use the standard generation process with AI-enhanced inference
@@ -344,11 +369,14 @@ func Generate(s *schema.Schema, numRows int, outputPath string) ([]string, error
 
 // GenerateWithFormat generates fake data using standard intelligent field inference with format override
 func GenerateWithFormat(s *schema.Schema, numRows int, outputPath string, formatOverride string) ([]string, error) {
+	logger.Debug("Starting data generation with %d rows", numRows)
+	
 	// Determine output format based on schema type or override
 	format := FormatJSON
 	
 	if formatOverride != "" {
 		// Use format override if provided
+		logger.Debug("Format override specified: %s", formatOverride)
 		switch strings.ToLower(formatOverride) {
 		case "json":
 			format = FormatJSON
@@ -359,6 +387,7 @@ func GenerateWithFormat(s *schema.Schema, numRows int, outputPath string, format
 		}
 	} else {
 		// Auto-detect format based on schema
+		logger.Debug("Auto-detecting output format from schema")
 		if len(s.Tables) > 0 {
 			// Check if any table came from SQL schema
 			format = FormatCSV
@@ -368,6 +397,7 @@ func GenerateWithFormat(s *schema.Schema, numRows int, outputPath string, format
 					if strings.Contains(strings.ToLower(field.Type), "json") || 
 					   strings.Contains(strings.ToLower(field.Type), "text") {
 						format = FormatJSON
+						logger.Debug("Detected complex field types, using JSON format")
 						break
 					}
 				}
@@ -377,6 +407,12 @@ func GenerateWithFormat(s *schema.Schema, numRows int, outputPath string, format
 			}
 		}
 	}
+	
+	formatName := "CSV"
+	if format == FormatJSON {
+		formatName = "JSON"
+	}
+	logger.Debug("Selected output format: %s", formatName)
 	
 	return GenerateDataFiles(*s, numRows, outputPath, format)
 }

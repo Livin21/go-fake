@@ -6,7 +6,7 @@ Thank you for your interest in contributing to go-fake! 🎉
 
 1. **Fork and clone the repository:**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/go-fake.git
+   git clone https://github.com/livin21/go-fake.git
    cd go-fake
    ```
 

@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- 📊 **Verbose Logging** with `-verbose` flag for detailed execution visibility
+- ⏱️ **Performance Timing** for data generation operations
+- 📈 **Progress Tracking** for multi-table generation
+- 🔍 **Step-by-step Execution Logging** with INFO/DEBUG levels
 - GitHub release pipeline with multi-platform binaries
 - Automated CI/CD with GitHub Actions
 - Cross-platform build support (Linux, Windows, macOS - AMD64/ARM64)

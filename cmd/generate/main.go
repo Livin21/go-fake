@@ -3,13 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	"go-fake/internal/generator"
 	"go-fake/internal/parser"
 	"go-fake/internal/schema"
+	"go-fake/pkg/logger"
 )
 
 const version = "v1.1.0"
@@ -21,6 +21,7 @@ func main() {
 	showVersion := flag.Bool("version", false, "Show version information")
 	enableAI := flag.Bool("ai", false, "Enable OpenAI-powered field inference (requires OPENAI_API_KEY)")
 	outputFormat := flag.String("format", "", "Override output format (json or csv). If not specified, format is auto-detected from schema type")
+	verbose := flag.Bool("verbose", false, "Enable verbose logging")
 	
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "go-fake v%s - AI-Enhanced Fake Data Generator\n\n", version)
@@ -34,6 +35,9 @@ func main() {
 		fmt.Fprintf(flag.CommandLine.Output(), "\nAI Enhancement:\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  Set OPENAI_API_KEY environment variable to enable AI-powered field inference\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  Use -ai flag to enable AI mode for ambiguous field detection\n\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "Logging:\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  Use -verbose flag to enable detailed execution logging\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  Shows schema parsing, data generation progress, and timing information\n\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "Supported field types:\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  Basic: string, int, float, bool, date, datetime\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  Identity: email, name, firstname, lastname, username, uuid\n")
@@ -46,6 +50,9 @@ func main() {
 		fmt.Fprintf(flag.CommandLine.Output(), "  System: status, priority, duration, gender\n")
 	}
 	flag.Parse()
+
+	// Initialize logger with verbose mode
+	logger.Init(*verbose)
 
 	if *showVersion {
 		fmt.Printf("go-fake v%s - AI-Enhanced Fake Data Generator\n", version)
@@ -60,52 +67,85 @@ func main() {
 
 	if *schemaFile == "" {
 		flag.Usage()
-		log.Fatal("\nError: Schema file is required")
+		logger.Fatal("Schema file is required")
 	}
 
+	logger.Step("1", "Validating schema file")
+	
 	// Check if schema file exists
 	if _, err := os.Stat(*schemaFile); os.IsNotExist(err) {
-		log.Fatalf("Error: Schema file '%s' does not exist", *schemaFile)
+		logger.Fatal("Schema file '%s' does not exist", *schemaFile)
 	}
+	
+	logger.Debug("Schema file '%s' exists", *schemaFile)
 
 	// Parse schema based on file extension
 	var schemaData schema.Schema
 	var err error
 
+	logger.Step("2", "Parsing schema file")
+	
 	if strings.HasSuffix(strings.ToLower(*schemaFile), ".json") {
+		logger.Debug("Detected JSON schema format")
 		schemaData, err = parser.ParseJSONSchema(*schemaFile)
 		if err != nil {
-			log.Fatalf("Error parsing JSON schema: %v", err)
+			logger.Fatal("Error parsing JSON schema: %v", err)
 		}
 	} else {
+		logger.Debug("Detected SQL schema format")
 		schemaData, err = parser.ParseSQLSchema(*schemaFile)
 		if err != nil {
-			log.Fatalf("Error parsing SQL schema: %v", err)
+			logger.Fatal("Error parsing SQL schema: %v", err)
 		}
+	}
+
+	logger.Info("Schema parsed successfully: %d table(s) found", len(schemaData.Tables))
+	for _, table := range schemaData.Tables {
+		logger.Debug("Table '%s': %d fields", table.Name, len(table.Fields))
 	}
 
 	// Generate fake data with optional AI enhancement
 	var generatedFiles []string
+	
+	logger.Step("3", "Generating fake data")
+	
 	if *enableAI {
-		fmt.Printf("AI-enhanced mode enabled (OpenAI API: %s)\n", getAIStatus())
-		generatedFiles, err = generator.GenerateWithAIAndFormat(&schemaData, *numRows, *outputFile, *outputFormat)
+		aiStatus := getAIStatus()
+		logger.Info("AI-enhanced mode enabled (OpenAI API: %s)", aiStatus)
+		if aiStatus == "Available" {
+			logger.Debug("Using OpenAI API for intelligent field inference")
+		}
+		
+		logger.Time("AI-enhanced data generation", func() {
+			generatedFiles, err = generator.GenerateWithAIAndFormat(&schemaData, *numRows, *outputFile, *outputFormat)
+		})
 	} else {
-		generatedFiles, err = generator.GenerateWithFormat(&schemaData, *numRows, *outputFile, *outputFormat)
+		logger.Debug("Using standard field inference")
+		logger.Time("Standard data generation", func() {
+			generatedFiles, err = generator.GenerateWithFormat(&schemaData, *numRows, *outputFile, *outputFormat)
+		})
 	}
 
 	if err != nil {
-		log.Fatalf("Error generating data: %v", err)
+		logger.Fatal("Error generating data: %v", err)
 	}
+
+	logger.Step("4", "Writing output files")
 
 	// Display results
 	if len(generatedFiles) == 1 {
+		logger.Info("Fake data generated and written to: %s", generatedFiles[0])
 		fmt.Printf("Fake data generated and written to: %s\n", generatedFiles[0])
 	} else {
+		logger.Info("Fake data generated and written to %d files", len(generatedFiles))
 		fmt.Printf("Fake data generated and written to %d files:\n", len(generatedFiles))
 		for _, file := range generatedFiles {
+			logger.Debug("Generated file: %s", file)
 			fmt.Printf("  - %s\n", file)
 		}
 	}
+	
+	logger.Info("Data generation completed successfully")
 }
 
 func getAIStatus() string {
