@@ -609,7 +609,7 @@ func (f *FieldTypeInference) GenerateIntelligentValue(field schema.Field) interf
 		return f.generateConstrainedValue(field, inferredType)
 	}
 	
-	return f.generateValueByType(inferredType, field.Name)
+	return f.GenerateValueByType(inferredType, field.Name)
 }
 
 // generateConstrainedValue generates values respecting field constraints
@@ -656,11 +656,12 @@ func (f *FieldTypeInference) generateConstrainedValue(field schema.Field, inferr
 	}
 	
 	// For other types, generate normally
-	return f.generateValueByType(inferredType, field.Name)
+	return f.GenerateValueByType(inferredType, field.Name)
 }
 
 // generateValueByType generates values based on the inferred type
-func (f *FieldTypeInference) generateValueByType(fieldType, fieldName string) interface{} {
+// GenerateValueByType generates a value for the specified field type (exported for performance optimizations)
+func (f *FieldTypeInference) GenerateValueByType(fieldType, fieldName string) interface{} {
 	switch fieldType {
 	case "email":
 		return faker.GenerateEmail()

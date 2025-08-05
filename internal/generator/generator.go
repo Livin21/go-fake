@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 var ErrInvalidSchema = errors.New("invalid schema type")
@@ -28,14 +29,20 @@ const (
 
 // RelationshipData stores generated data for relationship constraints
 type RelationshipData struct {
-	TableData map[string][]map[string]interface{} // table_name -> rows of data
-	References map[string][]interface{} // table.field -> list of generated values
+	mutex      sync.RWMutex
+	TableData  map[string][]map[string]interface{} // table_name -> rows of data
+	References map[string][]interface{}            // table.field -> list of generated values
 }
 
 // GenerateDataFiles generates fake data and creates separate files for each table.
 // The format is determined by the outputFormat parameter.
 func GenerateDataFiles(schemaInterface interface{}, numRows int, outputPath string, format OutputFormat) ([]string, error) {
-	logger.Debug("Generating data files for schema")
+	return GenerateDataFilesOptimized(schemaInterface, numRows, outputPath, format, DefaultPerformanceConfig())
+}
+
+// GenerateDataFilesOptimized generates fake data with performance optimizations
+func GenerateDataFilesOptimized(schemaInterface interface{}, numRows int, outputPath string, format OutputFormat, config PerformanceConfig) ([]string, error) {
+	logger.Debug("Generating data files for schema with optimizations enabled")
 	
 	// Convert the schema to the expected type
 	s, ok := schemaInterface.(schema.Schema)
@@ -64,33 +71,16 @@ func GenerateDataFiles(schemaInterface interface{}, numRows int, outputPath stri
 			return nil, fmt.Errorf("error creating output directory %s: %v", outputDir, err)
 		}
 
-		// First pass: Generate data for tables without dependencies
-		logger.Debug("First pass: generating data for independent tables")
-		independentCount := 0
-		for _, table := range s.Tables {
-			if !hasReferences(table.Fields) {
-				logger.Debug("Generating data for independent table: %s", table.Name)
-				data := generateTableDataWithConstraints(table.Fields, numRows, table.Name, relData, s.Relationships)
-				relData.TableData[table.Name] = data
-				populateReferences(table.Name, table.Fields, data, relData)
-				independentCount++
-			}
+		if config.EnableParallel && len(s.Tables) > 1 {
+			// Use parallel generation for multiple tables
+			logger.Debug("Using parallel table generation with %d workers", config.WorkerPoolSize)
+			ptg := NewParallelTableGenerator(config)
+			ptg.GenerateTablesParallel(s.Tables, numRows, relData, s.Relationships)
+		} else {
+			// Use sequential generation (original approach)
+			logger.Debug("Using sequential table generation")
+			generateTablesSequential(s.Tables, numRows, relData, s.Relationships)
 		}
-		logger.Debug("Generated data for %d independent tables", independentCount)
-
-		// Second pass: Generate data for tables with dependencies
-		logger.Debug("Second pass: generating data for dependent tables")
-		dependentCount := 0
-		for _, table := range s.Tables {
-			if hasReferences(table.Fields) {
-				logger.Debug("Generating data for dependent table: %s", table.Name)
-				data := generateTableDataWithConstraints(table.Fields, numRows, table.Name, relData, s.Relationships)
-				relData.TableData[table.Name] = data
-				populateReferences(table.Name, table.Fields, data, relData)
-				dependentCount++
-			}
-		}
-		logger.Debug("Generated data for %d dependent tables", dependentCount)
 
 		// Write all generated data to files in the output directory
 		logger.Debug("Writing data to files")
@@ -148,6 +138,37 @@ func GenerateDataFiles(schemaInterface interface{}, numRows int, outputPath stri
 	}
 
 	return generatedFiles, nil
+}
+
+// generateTablesSequential generates tables sequentially (original approach)
+func generateTablesSequential(tables []schema.Table, numRows int, relData *RelationshipData, relationships []schema.Relationship) {
+	// First pass: Generate data for tables without dependencies
+	logger.Debug("First pass: generating data for independent tables")
+	independentCount := 0
+	for _, table := range tables {
+		if !hasReferences(table.Fields) {
+			logger.Debug("Generating data for independent table: %s", table.Name)
+			data := generateTableDataWithConstraints(table.Fields, numRows, table.Name, relData, relationships)
+			relData.TableData[table.Name] = data
+			populateReferences(table.Name, table.Fields, data, relData)
+			independentCount++
+		}
+	}
+	logger.Debug("Generated data for %d independent tables", independentCount)
+
+	// Second pass: Generate data for tables with dependencies
+	logger.Debug("Second pass: generating data for dependent tables")
+	dependentCount := 0
+	for _, table := range tables {
+		if hasReferences(table.Fields) {
+			logger.Debug("Generating data for dependent table: %s", table.Name)
+			data := generateTableDataWithConstraints(table.Fields, numRows, table.Name, relData, relationships)
+			relData.TableData[table.Name] = data
+			populateReferences(table.Name, table.Fields, data, relData)
+			dependentCount++
+		}
+	}
+	logger.Debug("Generated data for %d dependent tables", dependentCount)
 }
 
 // GenerateData generates fake data based on the provided schema (backward compatibility).

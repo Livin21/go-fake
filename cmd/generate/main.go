@@ -22,6 +22,9 @@ func main() {
 	enableAI := flag.Bool("ai", false, "Enable OpenAI-powered field inference (requires OPENAI_API_KEY)")
 	outputFormat := flag.String("format", "", "Override output format (json or csv). If not specified, format is auto-detected from schema type")
 	verbose := flag.Bool("verbose", false, "Enable verbose logging")
+	enablePerf := flag.Bool("perf", false, "Enable performance optimizations (parallel generation, caching)")
+	workers := flag.Int("workers", 0, "Number of parallel workers (0 = auto-detect CPU cores)")
+	batchSize := flag.Int("batch", 1000, "Batch size for row generation (higher = more memory, faster generation)")
 	
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "go-fake v%s - AI-Enhanced Fake Data Generator\n\n", version)
@@ -38,6 +41,10 @@ func main() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Logging:\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  Use -verbose flag to enable detailed execution logging\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  Shows schema parsing, data generation progress, and timing information\n\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "Performance:\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  Use -perf flag to enable parallel generation and caching optimizations\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  -workers N: Set number of parallel workers (0 = auto-detect CPU cores)\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  -batch N: Set batch size for row generation (higher = faster, more memory)\n\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "Supported field types:\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  Basic: string, int, float, bool, date, datetime\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  Identity: email, name, firstname, lastname, username, uuid\n")
@@ -104,10 +111,34 @@ func main() {
 		logger.Debug("Table '%s': %d fields", table.Name, len(table.Fields))
 	}
 
-	// Generate fake data with optional AI enhancement
+	// Generate fake data with optional AI enhancement and performance optimizations
 	var generatedFiles []string
 	
 	logger.Step("3", "Generating fake data")
+	
+	// Configure performance settings
+	var performanceConfig generator.PerformanceConfig
+	if *enablePerf {
+		performanceConfig = generator.DefaultPerformanceConfig()
+		if *workers > 0 {
+			performanceConfig.WorkerPoolSize = *workers
+		}
+		if *batchSize > 0 {
+			performanceConfig.BatchSize = *batchSize
+		}
+		logger.Debug("Performance optimizations enabled: workers=%d, batch=%d, parallel=%v, cache=%v", 
+			performanceConfig.WorkerPoolSize, performanceConfig.BatchSize, 
+			performanceConfig.EnableParallel, performanceConfig.CacheFieldInference)
+	} else {
+		// Use non-optimized settings for compatibility
+		performanceConfig = generator.PerformanceConfig{
+			EnableParallel:      false,
+			WorkerPoolSize:      1,
+			BatchSize:          100,
+			PreallocateMemory:   false,
+			CacheFieldInference: false,
+		}
+	}
 	
 	if *enableAI {
 		aiStatus := getAIStatus()
@@ -121,9 +152,20 @@ func main() {
 		})
 	} else {
 		logger.Debug("Using standard field inference")
-		logger.Time("Standard data generation", func() {
-			generatedFiles, err = generator.GenerateWithFormat(&schemaData, *numRows, *outputFile, *outputFormat)
-		})
+		if *enablePerf {
+			logger.Time("Optimized data generation", func() {
+				generatedFiles, err = generator.GenerateDataFilesOptimized(schemaData, *numRows, *outputFile, 
+					generator.FormatCSV, performanceConfig)
+				if *outputFormat == "json" {
+					generatedFiles, err = generator.GenerateDataFilesOptimized(schemaData, *numRows, *outputFile, 
+						generator.FormatJSON, performanceConfig)
+				}
+			})
+		} else {
+			logger.Time("Standard data generation", func() {
+				generatedFiles, err = generator.GenerateWithFormat(&schemaData, *numRows, *outputFile, *outputFormat)
+			})
+		}
 	}
 
 	if err != nil {

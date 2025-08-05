@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- 🚀 **Performance Optimizations** with `-perf` flag for high-speed data generation
+- ⚡ **Parallel Table Generation** with configurable worker pools (`-workers` flag)
+- 🔄 **Batch Processing** for memory-efficient row generation (`-batch` flag)
+- 💾 **Field Inference Caching** to eliminate repeated pattern matching
+- 🎯 **Memory Pre-allocation** for better memory usage patterns
+- 📊 **Thread-safe Relationship Data** handling for parallel processing
+
+### Enhanced
+- Multi-table schemas now generate tables in parallel for improved performance
+- Intelligent worker pool sizing based on CPU cores (auto-detection)
+- Better memory management with pre-allocated slices and maps
+- Optimized field type inference with caching for repeated field patterns
+- Enhanced CLI with performance tuning options
+
+### Fixed
+- SQL parser now correctly filters out INDEX, UNIQUE, FOREIGN KEY, and KEY constraints
+- Prevents malformed column headers like 'INDEX,INDEX' and 'UNIQUE(hospital_id,'
+- Accurate field counts for complex schemas with constraint definitions
+- Thread-safe access to relationship data during parallel generation
+
 ## [1.2.1] - 2025-08-05
 
 ### Fixed
