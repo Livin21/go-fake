@@ -12,7 +12,7 @@ import (
 	"go-fake/pkg/logger"
 )
 
-const version = "v1.2.1"
+const version = "v1.3.0"
 
 func main() {
 	schemaFile := flag.String("schema", "", "Path to the schema file (JSON or SQL)")

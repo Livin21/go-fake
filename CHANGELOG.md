@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2025-08-05
+
 ### Added
 - 🚀 **Performance Optimizations** with `-perf` flag for high-speed data generation
 - ⚡ **Parallel Table Generation** with configurable worker pools (`-workers` flag)
@@ -112,6 +114,8 @@ To create a new release:
 ### CHANGELOG.md Format Requirements:
 ```markdown
 ## [Unreleased]
+
+## [1.3.0] - 2025-08-05
 
 ## [1.2.1] - 2025-08-05
 
