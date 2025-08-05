@@ -488,26 +488,51 @@ make clean
 
 ### Release Process
 
-This project uses automated releases with GitHub Actions:
+This project uses an **automated release process** that reads from `CHANGELOG.md`:
 
-1. **Create a new release:**
+1. **Update CHANGELOG.md:**
+   ```markdown
+   ## [Unreleased]
+   
+   ### Added
+   - 📊 **New Feature** with detailed description
+   - 🎯 **Another Feature** explaining the benefit
+   
+   ### Enhanced
+   - Improved existing functionality
+   - Better performance in specific areas
+   
+   ### Fixed
+   - Bug fixes and corrections
+   ```
+
+2. **Create a new release:**
    ```bash
    ./scripts/release.sh v1.2.0
    ```
+   
+   The script will:
+   - ✅ Validate `CHANGELOG.md` has content in `[Unreleased]` section
+   - 📝 Extract release notes from `[Unreleased]` section  
+   - 🔄 Update `CHANGELOG.md` by moving content to versioned section
+   - 🔢 Update version in `cmd/generate/main.go`
+   - 🧪 Run full test suite and build tests
+   - 📤 Create git commit and tag with extracted release notes
 
-2. **GitHub Actions automatically:**
-   - Builds binaries for 6 platforms (Linux, Windows, macOS - AMD64/ARM64)
-   - Runs comprehensive tests
-   - Creates GitHub release with binaries and checksums
-   - Updates Go module registry
+3. **GitHub Actions automatically:**
+   - 🏗️ Builds binaries for 6 platforms (Linux, Windows, macOS - AMD64/ARM64)
+   - 📋 Extracts the same release notes from `CHANGELOG.md`
+   - 🎁 Creates GitHub release with formatted notes and download instructions
+   - 📎 Uploads binaries and checksums
+   - 🌐 Updates Go module registry
 
-3. **Manual release (if needed):**
-   ```bash
-   # Update version in cmd/generate/main.go
-   # Commit and tag
-   git tag v1.2.0
-   git push origin v1.2.0
-   ```
+**Safety Features:**
+- Multiple validation layers prevent errors
+- Automatic backup and recovery on failure  
+- Clean error messages guide issue resolution
+- Full test suite must pass before release
+
+**Detailed Documentation:** See [docs/RELEASE_PROCESS.md](docs/RELEASE_PROCESS.md) for complete instructions.
 
 **Supported Platforms:**
 - Linux (AMD64, ARM64)
