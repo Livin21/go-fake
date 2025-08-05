@@ -1,15 +1,4 @@
-# go-f- **🤖 AI-Enhanced Field Inference**: OpenAI integration for intelligent field type detection
-- **🧠 Intelligent Pattern Matching**: 40+ supported data types with smart field recognition
-- **🚀 Performance Optimizations**: Parallel table generation with configurable worker pools
-- **⚡ High-Speed Processing**: Batch processing and field inference caching for optimal performance
-- **📋 Multiple Schema Formats**: Support for both JSON and SQL schema definitions
-- **🔗 Relationship Constraints**: Foreign key relationships and referential integrity
-- **⚙️ Field Constraints**: Min/max values, unique counts, and data validation
-- **📁 Smart Output Format**: JSON schemas → JSON files, SQL schemas → CSV files  
-- **🔄 Format Override**: Force JSON or CSV output regardless of input schema type
-- **🗂️ Multi-Table Support**: Generate separate files for each table in SQL schemas
-- **🎯 Rich Data Types**: 40+ supported data types for realistic fake data generationwerful CLI tool for generating fake data based on JSON or SQL schema definitions. Perfect for testing, development, and prototyping.
-
+# go-fake: Super fast fake data generator
 ## Features ✨
 
 - **🤖 AI-Enhanced Field Inference**: OpenAI integration for intelligent field type detection
