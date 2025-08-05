@@ -10,7 +10,8 @@ A powerful CLI tool for generating fake data based on JSON or SQL schema definit
 - **🔗 Relationship Constraints**: Foreign key relationships and referential integrity
 - **⚙️ Field Constraints**: Min/max values, unique counts, and data validation
 - **📁 Smart Output Format**: JSON schemas → JSON files, SQL schemas → CSV files  
-- **🗂️ Multi-Table Support**: Generate separate files for each table in SQL schemas
+- **� Format Override**: Force JSON or CSV output regardless of input schema type
+- **�🗂️ Multi-Table Support**: Generate separate files for each table in SQL schemas
 - **🎯 Rich Data Types**: 40+ supported data types for realistic fake data generation
 - **🔄 Dependency Resolution**: Automatic handling of table dependencies and foreign keys
 - **🛠️ Customizable Output**: Specify number of rows and output file location
@@ -48,6 +49,10 @@ go install github.com/livin21/go-fake/cmd/generate@latest
 # Specify number of rows
 ./bin/go-fake -schema examples/comprehensive.json -rows 1000 -output large-dataset
 
+# Override output format
+./bin/go-fake -schema examples/sample.json -format csv -output users.csv
+./bin/go-fake -schema examples/sample.sql -format json -output users_json/
+
 # Check version and feature status
 ./bin/go-fake --version
 # Shows: AI integration status, supported data types, feature list
@@ -55,17 +60,33 @@ go install github.com/livin21/go-fake/cmd/generate@latest
 
 ### Output Format
 
-The tool automatically determines the output format based on your input schema:
+The tool automatically determines the output format based on your input schema, but you can override this behavior:
 
-- **JSON Schema Input** (`.json`) → **JSON Output Files**
-- **SQL Schema Input** (`.sql`) → **CSV Output Files**
+- **JSON Schema Input** (`.json`) → **JSON Output Files** (default)
+- **SQL Schema Input** (`.sql`) → **CSV Output Files** (default)
 - **Multi-Table Schemas** → **Directory with separate files per table**
+- **Format Override** → Use `-format json` or `-format csv` to override automatic detection
+
+#### Format Override Examples
+
+```bash
+# Force JSON schema to output CSV format
+./bin/go-fake -schema schema.json -format csv -output data.csv
+
+# Force SQL schema to output JSON format  
+./bin/go-fake -schema schema.sql -format json -output data_dir/
+
+# Multi-table SQL schema as JSON files in directory
+./bin/go-fake -schema multi_table.sql -format json -output json_output/
+# Creates: json_output/users.json, json_output/products.json, etc.
+```
 
 ### Command Line Options
 
 - `-schema string`: Path to the schema file (JSON or SQL) - **Required**
 - `-output string`: Output directory for multi-table schemas or file path for single-table schemas (default: "output.csv" or "output.json")
 - `-rows int`: Number of rows to generate (default: 100)
+- `-format string`: Override output format (`json` or `csv`). If not specified, format is auto-detected from schema type
 - `-ai`: Enable OpenAI-powered field inference for ambiguous field names (requires OPENAI_API_KEY)
 - `-version`: Show version information and feature status
 - `-h`: Show help message with supported data types
@@ -352,11 +373,32 @@ EOF
 # AI-enhanced mode (intelligent inference)
 ./bin/go-fake -schema ambiguous_schema.json -ai -output enhanced.json
 
+# Format override with AI enhancement
+./bin/go-fake -schema ambiguous_schema.json -ai -format csv -output enhanced.csv
+
 # AI Output Examples:
 # user_handle: "ultrajohnpro", "megaalice123"
 # secret_code: "$eC9rE!@", "Kbt^Aje^fYS" 
 # network_endpoint: "192.168.1.1", "api.example.com"
 # business_entity: "TechCorp", "InnovateLab"
+```
+
+### Format Override Examples
+
+```bash
+# Convert JSON schema to CSV output
+./bin/go-fake -schema user_profile.json -format csv -output users.csv
+
+# Convert SQL schema to JSON output
+./bin/go-fake -schema database.sql -format json -output json_data/
+
+# Multi-table SQL to individual JSON files
+./bin/go-fake -schema ecommerce.sql -format json -rows 500 -output ecommerce_json/
+# Creates: ecommerce_json/users.json, ecommerce_json/products.json, etc.
+
+# Error handling for invalid formats
+./bin/go-fake -schema schema.json -format xml -output data
+# Error: unsupported format: xml (supported: json, csv)
 ```
 
 ## Development 🛠️
@@ -438,6 +480,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] ✅ **Intelligent Pattern Matching**: Multi-layered field type inference
 - [x] ✅ **Relationship Constraints**: Foreign key relationships between fields
 - [x] ✅ **Directory-based Output**: Organized multi-table file generation
+- [x] ✅ **Format Override**: JSON/CSV output format control regardless of input schema
 - [ ] 🔄 **Support for more output formats** (XML, Parquet, Avro)
 - [ ] 🔄 **Custom faker patterns and templates**
 - [ ] 🔄 **Database direct export** (PostgreSQL, MySQL, MongoDB)

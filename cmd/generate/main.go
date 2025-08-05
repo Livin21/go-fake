@@ -20,14 +20,16 @@ func main() {
 	numRows := flag.Int("rows", 100, "Number of rows to generate")
 	showVersion := flag.Bool("version", false, "Show version information")
 	enableAI := flag.Bool("ai", false, "Enable OpenAI-powered field inference (requires OPENAI_API_KEY)")
+	outputFormat := flag.String("format", "", "Override output format (json or csv). If not specified, format is auto-detected from schema type")
 	
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "go-fake v%s - AI-Enhanced Fake Data Generator\n\n", version)
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [OPTIONS]\n\n", "go-fake")
 		fmt.Fprintf(flag.CommandLine.Output(), "Output Format:\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "  JSON schemas (.json) -> JSON output files\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "  SQL schemas (.sql)   -> CSV output files\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "  Multi-table schemas  -> Creates directory with separate files per table\n\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  JSON schemas (.json) -> JSON output files (default)\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  SQL schemas (.sql)   -> CSV output files (default)\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  Multi-table schemas  -> Creates directory with separate files per table\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  Use -format to override automatic format detection\n\n")
 		flag.PrintDefaults()
 		fmt.Fprintf(flag.CommandLine.Output(), "\nAI Enhancement:\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  Set OPENAI_API_KEY environment variable to enable AI-powered field inference\n")
@@ -86,9 +88,9 @@ func main() {
 	var generatedFiles []string
 	if *enableAI {
 		fmt.Printf("AI-enhanced mode enabled (OpenAI API: %s)\n", getAIStatus())
-		generatedFiles, err = generator.GenerateWithAI(&schemaData, *numRows, *outputFile)
+		generatedFiles, err = generator.GenerateWithAIAndFormat(&schemaData, *numRows, *outputFile, *outputFormat)
 	} else {
-		generatedFiles, err = generator.Generate(&schemaData, *numRows, *outputFile)
+		generatedFiles, err = generator.GenerateWithFormat(&schemaData, *numRows, *outputFile, *outputFormat)
 	}
 
 	if err != nil {

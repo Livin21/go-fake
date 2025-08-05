@@ -323,33 +323,57 @@ func generateUniqueValues(field schema.Field, count int) []interface{} {
 
 // GenerateWithAI generates fake data using AI-enhanced field inference when available
 func GenerateWithAI(s *schema.Schema, numRows int, outputPath string) ([]string, error) {
+	return GenerateWithAIAndFormat(s, numRows, outputPath, "")
+}
+
+// GenerateWithAIAndFormat generates fake data using AI-enhanced intelligent field inference with format override
+func GenerateWithAIAndFormat(s *schema.Schema, numRows int, outputPath string, formatOverride string) ([]string, error) {
 	// Enable AI mode on the global field inference instance
 	if fieldInference.aiClient != nil {
 		fieldInference.aiClient.config.Enabled = true
 	}
 	
 	// Use the standard generation process with AI-enhanced inference
-	return Generate(s, numRows, outputPath)
+	return GenerateWithFormat(s, numRows, outputPath, formatOverride)
 }
 
 // Generate generates fake data using standard intelligent field inference
 func Generate(s *schema.Schema, numRows int, outputPath string) ([]string, error) {
-	// Determine output format based on schema type
+	return GenerateWithFormat(s, numRows, outputPath, "")
+}
+
+// GenerateWithFormat generates fake data using standard intelligent field inference with format override
+func GenerateWithFormat(s *schema.Schema, numRows int, outputPath string, formatOverride string) ([]string, error) {
+	// Determine output format based on schema type or override
 	format := FormatJSON
-	if len(s.Tables) > 0 {
-		// Check if any table came from SQL schema
-		format = FormatCSV
-		for _, table := range s.Tables {
-			// If we have complex field types, prefer JSON
-			for _, field := range table.Fields {
-				if strings.Contains(strings.ToLower(field.Type), "json") || 
-				   strings.Contains(strings.ToLower(field.Type), "text") {
-					format = FormatJSON
+	
+	if formatOverride != "" {
+		// Use format override if provided
+		switch strings.ToLower(formatOverride) {
+		case "json":
+			format = FormatJSON
+		case "csv":
+			format = FormatCSV
+		default:
+			return nil, fmt.Errorf("unsupported format: %s (supported: json, csv)", formatOverride)
+		}
+	} else {
+		// Auto-detect format based on schema
+		if len(s.Tables) > 0 {
+			// Check if any table came from SQL schema
+			format = FormatCSV
+			for _, table := range s.Tables {
+				// If we have complex field types, prefer JSON
+				for _, field := range table.Fields {
+					if strings.Contains(strings.ToLower(field.Type), "json") || 
+					   strings.Contains(strings.ToLower(field.Type), "text") {
+						format = FormatJSON
+						break
+					}
+				}
+				if format == FormatJSON {
 					break
 				}
-			}
-			if format == FormatJSON {
-				break
 			}
 		}
 	}
