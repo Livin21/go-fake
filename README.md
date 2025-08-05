@@ -17,7 +17,7 @@ A powerful CLI tool for generating fake data based on JSON or SQL schema definit
 ### From Source
 
 ```bash
-git clone https://github.com/your-username/go-fake.git
+git clone https://github.com/livin21/go-fake.git
 cd go-fake
 make build
 ```
@@ -25,7 +25,7 @@ make build
 ### Using Go Install
 
 ```bash
-go install github.com/your-username/go-fake/cmd/generate@latest
+go install github.com/livin21/go-fake/cmd/generate@latest
 ```
 
 ## Usage 📖
