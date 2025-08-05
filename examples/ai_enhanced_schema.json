@@ -1,0 +1,44 @@
+{
+  "tables": [
+    {
+      "name": "user_analytics",
+      "fields": [
+        {"name": "user_id", "type": "string", "required": true},
+        {"name": "session_metadata", "type": "string", "required": false},
+        {"name": "behavioral_scores", "type": "string", "required": false},
+        {"name": "engagement_metrics", "type": "string", "required": false},
+        {"name": "conversion_funnel_data", "type": "string", "required": false},
+        {"name": "attribution_model", "type": "string", "required": false},
+        {"name": "cohort_segment", "type": "string", "required": false},
+        {"name": "lifetime_value_prediction", "type": "string", "required": false},
+        {"name": "churn_probability", "type": "string", "required": false},
+        {"name": "personalization_vector", "type": "string", "required": false}
+      ]
+    },
+    {
+      "name": "content_moderation",
+      "fields": [
+        {"name": "content_id", "type": "string", "required": true},
+        {"name": "toxicity_score", "type": "string", "required": false},
+        {"name": "sentiment_analysis", "type": "string", "required": false},
+        {"name": "content_embedding", "type": "string", "required": false},
+        {"name": "moderation_flags", "type": "string", "required": false},
+        {"name": "confidence_threshold", "type": "string", "required": false},
+        {"name": "reviewer_notes", "type": "string", "required": false},
+        {"name": "escalation_reason", "type": "string", "required": false}
+      ]
+    },
+    {
+      "name": "iot_sensor_data",
+      "fields": [
+        {"name": "device_uuid", "type": "string", "required": true},
+        {"name": "telemetry_payload", "type": "string", "required": false},
+        {"name": "calibration_offset", "type": "string", "required": false},
+        {"name": "environmental_context", "type": "string", "required": false},
+        {"name": "anomaly_detection_score", "type": "string", "required": false},
+        {"name": "maintenance_prediction", "type": "string", "required": false},
+        {"name": "energy_consumption_pattern", "type": "string", "required": false}
+      ]
+    }
+  ]
+}

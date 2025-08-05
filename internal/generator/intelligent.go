@@ -12,6 +12,7 @@ import (
 type FieldTypeInference struct {
 	patterns map[string][]string // type -> patterns
 	semantic map[string]string   // semantic name -> type
+	aiClient *OpenAIFieldInference // AI-powered inference client
 }
 
 // NewFieldTypeInference creates a new intelligent field type detector
@@ -348,6 +349,7 @@ func NewFieldTypeInference() *FieldTypeInference {
 			"telephone":   "phone",
 			"cell":        "phone",
 		},
+		aiClient: NewOpenAIFieldInference(),
 	}
 }
 
@@ -395,7 +397,15 @@ func (f *FieldTypeInference) InferFieldType(field schema.Field) string {
 	if inferredType := f.contextualInference(fieldName); inferredType != "" {
 		return inferredType
 	}
-	
+
+	// AI-powered inference for ambiguous cases (if OpenAI API is available)
+	if f.aiClient != nil && f.aiClient.config.Enabled {
+		if aiType, confidence, err := f.aiClient.InferFieldTypeWithAI(field.Name, field.Type, "", nil); err == nil && confidence > 0.7 {
+			// Only use AI suggestion if confidence is high
+			return aiType
+		}
+	}
+
 	// Default fallback based on common naming conventions
 	return f.defaultInference(fieldName, fieldType)
 }
@@ -784,4 +794,36 @@ func (f *FieldTypeInference) generateContextualString(fieldName string) string {
 	
 	// Default to name if no context match
 	return faker.GenerateName()
+}
+
+// InferFieldTypeWithContext performs enhanced inference using table context and AI when available
+func (f *FieldTypeInference) InferFieldTypeWithContext(field schema.Field, tableName string, sampleData []string) string {
+	// First try the standard inference
+	standardType := f.InferFieldType(field)
+	
+	// If we get a generic result and AI is available, try AI inference
+	if (standardType == "string" || standardType == "text") && f.aiClient != nil && f.aiClient.config.Enabled {
+		if aiType, confidence, err := f.aiClient.InferFieldTypeWithAI(field.Name, field.Type, tableName, sampleData); err == nil && confidence > 0.8 {
+			return aiType
+		}
+	}
+	
+	return standardType
+}
+
+// GenerateAIEnhancedValue generates values using AI for complex or contextual fields
+func (f *FieldTypeInference) GenerateAIEnhancedValue(field schema.Field, tableName string) interface{} {
+	// For certain complex fields, we could use AI to generate more contextual data
+	fieldName := strings.ToLower(field.Name)
+	
+	// Use AI for description/content fields if available
+	if f.aiClient != nil && f.aiClient.config.Enabled {
+		if strings.Contains(fieldName, "description") || strings.Contains(fieldName, "bio") || strings.Contains(fieldName, "summary") {
+			// Could implement AI-generated descriptions based on table context
+			// For now, fall back to standard generation
+		}
+	}
+	
+	// Fall back to standard intelligent value generation
+	return f.GenerateIntelligentValue(field)
 }

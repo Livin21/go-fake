@@ -4,16 +4,18 @@ A powerful CLI tool for generating fake data based on JSON or SQL schema definit
 
 ## Features ✨
 
-- **Multiple Schema Formats**: Support for both JSON and SQL schema definitions
-- **Relationship Constraints**: Foreign key relationships and referential integrity
-- **Field Constraints**: Min/max values, unique counts, and data validation
-- **Smart Output Format**: JSON schemas → JSON files, SQL schemas → CSV files  
-- **Multi-Table Support**: Generate separate files for each table in SQL schemas
-- **Rich Data Types**: 17+ supported data types for realistic fake data generation
-- **Dependency Resolution**: Automatic handling of table dependencies and foreign keys
-- **Customizable Output**: Specify number of rows and output file location
-- **Type-Safe JSON**: Proper data types in JSON output (numbers, booleans, strings)
-- **Fast & Lightweight**: Built with Go 1.24 for optimal performance
+- **🤖 AI-Enhanced Field Inference**: OpenAI integration for intelligent field type detection
+- **🧠 Intelligent Pattern Matching**: 40+ supported data types with smart field recognition
+- **📋 Multiple Schema Formats**: Support for both JSON and SQL schema definitions
+- **🔗 Relationship Constraints**: Foreign key relationships and referential integrity
+- **⚙️ Field Constraints**: Min/max values, unique counts, and data validation
+- **📁 Smart Output Format**: JSON schemas → JSON files, SQL schemas → CSV files  
+- **🗂️ Multi-Table Support**: Generate separate files for each table in SQL schemas
+- **🎯 Rich Data Types**: 40+ supported data types for realistic fake data generation
+- **🔄 Dependency Resolution**: Automatic handling of table dependencies and foreign keys
+- **🛠️ Customizable Output**: Specify number of rows and output file location
+- **✅ Type-Safe JSON**: Proper data types in JSON output (numbers, booleans, strings)
+- **⚡ Fast & Lightweight**: Built with Go 1.24 for optimal performance
 
 ## Installation 🚀
 
@@ -45,6 +47,10 @@ go install github.com/livin21/go-fake/cmd/generate@latest
 
 # Specify number of rows
 ./bin/go-fake -schema examples/comprehensive.json -rows 1000 -output large-dataset
+
+# Check version and feature status
+./bin/go-fake --version
+# Shows: AI integration status, supported data types, feature list
 ```
 
 ### Output Format
@@ -60,7 +66,26 @@ The tool automatically determines the output format based on your input schema:
 - `-schema string`: Path to the schema file (JSON or SQL) - **Required**
 - `-output string`: Output directory for multi-table schemas or file path for single-table schemas (default: "output.csv" or "output.json")
 - `-rows int`: Number of rows to generate (default: 100)
+- `-ai`: Enable OpenAI-powered field inference for ambiguous field names (requires OPENAI_API_KEY)
+- `-version`: Show version information and feature status
 - `-h`: Show help message with supported data types
+
+### AI Enhancement 🤖
+
+Set the `OPENAI_API_KEY` environment variable to enable AI-powered field inference:
+
+```bash
+export OPENAI_API_KEY="your-openai-api-key"
+
+# Use AI mode for enhanced field detection
+./bin/go-fake -schema schema.json -ai -output enhanced_data.json
+```
+
+**AI Benefits:**
+- **Intelligent Field Inference**: Analyzes ambiguous field names like `user_handle`, `secret_code`, `network_endpoint`
+- **Contextual Data Generation**: Generates more realistic, contextually appropriate data
+- **Graceful Fallback**: Falls back to intelligent pattern matching when API is unavailable
+- **Enhanced Schema Understanding**: Provides suggestions and documentation for complex schemas
 
 ## Schema Formats 📋
 
@@ -215,25 +240,43 @@ For detailed relationship constraint documentation, see **[RELATIONSHIPS.md](REL
 
 ## Supported Data Types 🎯
 
-| Type | Description | Example Output |
-|------|-------------|----------------|
-| `string`, `varchar`, `text` | Random full names | John Smith |
-| `email` | Random email addresses | john.doe@example.com |
-| `int`, `integer`, `serial` | Random integers | 42 |
-| `float`, `decimal`, `numeric` | Random decimal numbers | 123.45 |
-| `bool`, `boolean` | Random true/false | true |
-| `date` | Random dates | 2023-05-15 |
-| `datetime`, `timestamp` | Random datetimes | 2023-05-15 14:30:22 |
-| `phone` | Random phone numbers | (555) 123-4567 |
-| `company` | Random company names | TechCorp |
-| `address` | Random street addresses | 123 Main St |
-| `city` | Random city names | New York |
-| `state` | Random state codes | CA |
-| `zipcode`, `zip` | Random ZIP codes | 12345 |
-| `uuid` | Random UUIDs | 123e4567-e89b-12d3-a456-426614174000 |
-| `price` | Random prices | 29.99 |
-| `firstname` | Random first names | Alice |
-| `lastname` | Random last names | Johnson |
+**The tool intelligently detects field types using multi-layered inference:**
+1. **Exact Pattern Matching**: Direct field name matches (e.g., `email` → email addresses)
+2. **Partial Pattern Matching**: Substring matches (e.g., `user_email` → email addresses)  
+3. **Semantic Understanding**: Context analysis (e.g., `contact_method` → phone/email)
+4. **AI Enhancement**: OpenAI analysis for ambiguous fields (with `-ai` flag)
+5. **Regex Analysis**: Pattern-based detection for complex field names
+
+### Comprehensive Data Type Support
+
+| Category | Types | Example Output |
+|----------|-------|----------------|
+| **Basic Types** | `string`, `int`, `float`, `bool`, `date`, `datetime` | "Sample Text", 42, 123.45, true, "2023-05-15" |
+| **Identity** | `email`, `name`, `firstname`, `lastname`, `username`, `uuid` | alice@example.com, John Doe, ultrajohnpro |
+| **Contact Info** | `phone`, `address`, `city`, `state`, `zipcode`, `country` | (555) 123-4567, 123 Main St, New York, CA |
+| **Business** | `company`, `jobtitle`, `department`, `category`, `price` | TechCorp, Software Engineer, Engineering |
+| **Technical** | `url`, `image`, `ipaddress`, `macaddress`, `version`, `filename` | https://example.com, 192.168.1.1, v1.2.3 |
+| **Security** | `password`, `creditcard`, `bankaccount`, `ssn`, `license` | $eC9rE!@, 4532-1234-5678-9012 |
+| **Content** | `text`, `hashtag`, `color`, `product`, `brand`, `skill` | #trending, #FF5733, Wireless Headphones |
+| **Measurements** | `age`, `height`, `weight`, `temperature`, `longitude`, `latitude` | 28, 5.8, 165.5, 72.3°F, -122.4194 |
+| **System** | `status`, `priority`, `duration`, `gender` | active, high, 2h 30m, male |
+
+### AI-Enhanced Field Detection Examples
+
+```bash
+# Standard detection
+"user_email" → email addresses
+"phone_number" → phone numbers  
+"company_name" → company names
+
+# AI-enhanced detection (with -ai flag)
+"network_endpoint" → IP addresses or URLs
+"secret_code" → secure passwords
+"personal_identifier" → UUIDs or IDs
+"business_entity" → company names
+"contact_method" → names or emails
+"measurement_reading" → decimal numbers
+```
 
 ## Examples 💡
 
@@ -280,9 +323,40 @@ EOF
 
 # Output:
 # Fake data generated and written to 3 files:
-#   - ecommerce_users.csv
-#   - ecommerce_products.csv  
-#   - ecommerce_orders.csv
+#   - ecommerce/users.csv
+#   - ecommerce/products.csv  
+#   - ecommerce/orders.csv
+```
+
+### AI-Enhanced Generation Examples
+
+```bash
+# Generate data with AI field inference
+export OPENAI_API_KEY="your-api-key"
+
+# Schema with ambiguous field names
+cat > ambiguous_schema.json << EOF
+{
+  "fields": [
+    {"name": "user_handle", "type": "string"},
+    {"name": "secret_code", "type": "string"}, 
+    {"name": "network_endpoint", "type": "string"},
+    {"name": "business_entity", "type": "string"}
+  ]
+}
+EOF
+
+# Standard mode (pattern matching)
+./bin/go-fake -schema ambiguous_schema.json -output standard.json
+
+# AI-enhanced mode (intelligent inference)
+./bin/go-fake -schema ambiguous_schema.json -ai -output enhanced.json
+
+# AI Output Examples:
+# user_handle: "ultrajohnpro", "megaalice123"
+# secret_code: "$eC9rE!@", "Kbt^Aje^fYS" 
+# network_endpoint: "192.168.1.1", "api.example.com"
+# business_entity: "TechCorp", "InnovateLab"
 ```
 
 ## Development 🛠️
@@ -294,12 +368,17 @@ go-fake/
 ├── cmd/generate/          # CLI application entry point
 ├── internal/
 │   ├── generator/         # Data generation logic
+│   │   ├── generator.go   # Core generation functions
+│   │   ├── intelligent.go # Intelligent field type inference
+│   │   └── openai.go      # OpenAI API integration
 │   ├── parser/           # Schema parsing (JSON/SQL)
 │   └── schema/           # Schema types and validation
 ├── pkg/
 │   ├── csv/              # CSV writing utilities  
-│   └── faker/            # Fake data providers
+│   └── faker/            # Fake data providers (40+ types)
 ├── examples/             # Example schema files
+├── docs/                 # Documentation
+│   └── OPENAI_INTEGRATION.md # AI integration guide
 └── Makefile             # Build automation
 ```
 
@@ -325,9 +404,18 @@ make clean
 ### Adding New Data Types
 
 1. Add the generator function to `pkg/faker/providers.go`
-2. Add the case to the switch statement in `internal/generator/generator.go`
-3. Update the help text in `cmd/generate/main.go`
-4. Add tests for the new functionality
+2. Add the pattern to `internal/generator/intelligent.go` inference maps
+3. Add the case to the switch statement in `generateValueByType()`
+4. Update the help text in `cmd/generate/main.go`
+5. Add tests for the new functionality
+
+### AI Integration Development
+
+For OpenAI integration development, see **[docs/OPENAI_INTEGRATION.md](docs/OPENAI_INTEGRATION.md)** for:
+- API integration patterns
+- Field inference strategies  
+- Fallback mechanisms
+- Cost optimization techniques
 
 ## Contributing 🤝
 
@@ -345,20 +433,28 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Roadmap 🗺️
 
-- [ ] Support for more output formats (JSON, XML, Parquet)
-- [ ] Custom faker patterns and templates
-- [ ] Database direct export (PostgreSQL, MySQL)
-- [ ] Web UI for schema creation
-- [ ] Docker container support
-- [ ] Relationship constraints between fields
-- [ ] Data localization (different languages/regions)
+- [x] ✅ **AI-Enhanced Field Inference**: OpenAI integration for intelligent field detection
+- [x] ✅ **40+ Data Types**: Comprehensive fake data generation across multiple domains  
+- [x] ✅ **Intelligent Pattern Matching**: Multi-layered field type inference
+- [x] ✅ **Relationship Constraints**: Foreign key relationships between fields
+- [x] ✅ **Directory-based Output**: Organized multi-table file generation
+- [ ] 🔄 **Support for more output formats** (XML, Parquet, Avro)
+- [ ] 🔄 **Custom faker patterns and templates**
+- [ ] 🔄 **Database direct export** (PostgreSQL, MySQL, MongoDB)
+- [ ] 🔄 **Web UI for schema creation** and real-time preview  
+- [ ] 🔄 **Docker container support** and Kubernetes deployment
+- [ ] 🔄 **Data localization** (different languages/regions)
+- [ ] 🔄 **Advanced AI features** (schema generation from descriptions)
+- [ ] 🔄 **Performance optimizations** for large datasets (>1M rows)
+- [ ] 🔄 **Plugin system** for custom data generators
 
 ## Acknowledgments 🙏
 
 - Inspired by libraries like Faker.js and Python Faker
 - Built with the power of Go's standard library
+- OpenAI GPT models for intelligent field inference
 - Thanks to all contributors and users
 
 ---
 
-**Happy fake data generation!** 🎉
+**Happy fake data generation with AI!** 🤖🎉

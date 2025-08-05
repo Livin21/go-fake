@@ -1,0 +1,44 @@
+{
+  "fields": [
+    {
+      "name": "id",
+      "type": "int",
+      "required": true
+    },
+    {
+      "name": "user_handle",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "secret_code",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "personal_identifier",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "contact_method",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "location_info",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "business_entity",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "birth_year",
+      "type": "string",
+      "required": true
+    }
+  ]
+}

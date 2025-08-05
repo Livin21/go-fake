@@ -14,6 +14,9 @@ import (
 
 var ErrInvalidSchema = errors.New("invalid schema type")
 
+// Global field inference instance
+var fieldInference = NewFieldTypeInference()
+
 // OutputFormat represents the desired output format
 type OutputFormat int
 
@@ -27,9 +30,6 @@ type RelationshipData struct {
 	TableData map[string][]map[string]interface{} // table_name -> rows of data
 	References map[string][]interface{} // table.field -> list of generated values
 }
-
-// Global intelligent field type detector
-var fieldInference = NewFieldTypeInference()
 
 // GenerateDataFiles generates fake data and creates separate files for each table.
 // The format is determined by the outputFormat parameter.
@@ -319,6 +319,42 @@ func generateUniqueValues(field schema.Field, count int) []interface{} {
 	}
 	
 	return values
+}
+
+// GenerateWithAI generates fake data using AI-enhanced field inference when available
+func GenerateWithAI(s *schema.Schema, numRows int, outputPath string) ([]string, error) {
+	// Enable AI mode on the global field inference instance
+	if fieldInference.aiClient != nil {
+		fieldInference.aiClient.config.Enabled = true
+	}
+	
+	// Use the standard generation process with AI-enhanced inference
+	return Generate(s, numRows, outputPath)
+}
+
+// Generate generates fake data using standard intelligent field inference
+func Generate(s *schema.Schema, numRows int, outputPath string) ([]string, error) {
+	// Determine output format based on schema type
+	format := FormatJSON
+	if len(s.Tables) > 0 {
+		// Check if any table came from SQL schema
+		format = FormatCSV
+		for _, table := range s.Tables {
+			// If we have complex field types, prefer JSON
+			for _, field := range table.Fields {
+				if strings.Contains(strings.ToLower(field.Type), "json") || 
+				   strings.Contains(strings.ToLower(field.Type), "text") {
+					format = FormatJSON
+					break
+				}
+			}
+			if format == FormatJSON {
+				break
+			}
+		}
+	}
+	
+	return GenerateDataFiles(*s, numRows, outputPath, format)
 }
 
 // populateReferences stores generated values for use as foreign key references
