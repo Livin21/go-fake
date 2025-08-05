@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2025-08-05
+
 ### Fixed
 - **Clean Column Headers**: No more malformed columns
 - **Accurate Field Counts**: Proper parsing of complex schemas
@@ -89,6 +91,8 @@ To create a new release:
 ### CHANGELOG.md Format Requirements:
 ```markdown
 ## [Unreleased]
+
+## [1.2.1] - 2025-08-05
 
 ## [1.2.0] - 2025-08-05
 
