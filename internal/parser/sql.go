@@ -94,7 +94,15 @@ func parseFieldDefinitionWithConstraints(line, tableName string, relationships *
 	line = strings.TrimSpace(line)
 	line = strings.TrimSuffix(line, ",")
 	
-	if line == "" || strings.HasPrefix(line, "PRIMARY KEY") || strings.HasPrefix(line, "CONSTRAINT") {
+	// Skip empty lines and various SQL constraint/index definitions
+	upperLine := strings.ToUpper(line)
+	if line == "" || 
+		strings.HasPrefix(upperLine, "PRIMARY KEY") || 
+		strings.HasPrefix(upperLine, "CONSTRAINT") ||
+		strings.HasPrefix(upperLine, "INDEX") ||
+		strings.HasPrefix(upperLine, "UNIQUE(") ||
+		strings.HasPrefix(upperLine, "FOREIGN KEY") ||
+		strings.HasPrefix(upperLine, "KEY") {
 		return schema.Field{}
 	}
 
@@ -110,8 +118,7 @@ func parseFieldDefinitionWithConstraints(line, tableName string, relationships *
 		Constraints: &schema.Constraint{},
 	}
 
-	// Parse constraints from the line
-	upperLine := strings.ToUpper(line)
+	// Parse constraints from the line (upperLine already defined above)
 	
 	// Check for NOT NULL
 	if strings.Contains(upperLine, "NOT NULL") {
