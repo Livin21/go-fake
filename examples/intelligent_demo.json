@@ -1,0 +1,47 @@
+{
+  "tables": [
+    {
+      "name": "users",
+      "fields": [
+        {"name": "user_id", "type": "string", "required": true},
+        {"name": "first_name", "type": "string", "required": true},
+        {"name": "last_name", "type": "string", "required": true},
+        {"name": "email_address", "type": "string", "required": true},
+        {"name": "phone_number", "type": "string", "required": false},
+        {"name": "home_address", "type": "string", "required": false},
+        {"name": "birth_date", "type": "string", "required": false},
+        {"name": "is_active", "type": "string", "required": true},
+        {"name": "created_at", "type": "string", "required": true}
+      ]
+    },
+    {
+      "name": "employees",
+      "fields": [
+        {"name": "employee_id", "type": "string", "required": true},
+        {"name": "full_name", "type": "string", "required": true},
+        {"name": "job_title", "type": "string", "required": true},
+        {"name": "department", "type": "string", "required": true},
+        {"name": "salary_amount", "type": "string", "required": true},
+        {"name": "hire_date", "type": "string", "required": true},
+        {"name": "work_email", "type": "string", "required": true},
+        {"name": "office_phone", "type": "string", "required": false},
+        {"name": "profile_picture", "type": "string", "required": false},
+        {"name": "has_benefits", "type": "string", "required": true}
+      ]
+    },
+    {
+      "name": "products",
+      "fields": [
+        {"name": "product_id", "type": "string", "required": true},
+        {"name": "product_name", "type": "string", "required": true},
+        {"name": "brand_name", "type": "string", "required": true},
+        {"name": "category_type", "type": "string", "required": true},
+        {"name": "price_amount", "type": "string", "required": true},
+        {"name": "color", "type": "string", "required": false},
+        {"name": "description", "type": "string", "required": false},
+        {"name": "website_url", "type": "string", "required": false},
+        {"name": "country_origin", "type": "string", "required": false}
+      ]
+    }
+  ]
+}

@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"go-fake/internal/schema"
 	"go-fake/pkg/csv"
-	"go-fake/pkg/faker"
 	"math/rand/v2"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -29,6 +27,9 @@ type RelationshipData struct {
 	TableData map[string][]map[string]interface{} // table_name -> rows of data
 	References map[string][]interface{} // table.field -> list of generated values
 }
+
+// Global intelligent field type detector
+var fieldInference = NewFieldTypeInference()
 
 // GenerateDataFiles generates fake data and creates separate files for each table.
 // The format is determined by the outputFormat parameter.
@@ -177,25 +178,9 @@ func generateTableDataAsJSON(fields []schema.Field, numRows int, tableName strin
 	for i := 0; i < numRows; i++ {
 		record := make(map[string]interface{})
 		for _, field := range fields {
-			value := generateFakeValue(field)
-			// Try to convert numeric strings to actual numbers for JSON
-			if field.Type == "int" || field.Type == "integer" || field.Type == "serial" {
-				if intVal, err := strconv.Atoi(value); err == nil {
-					record[field.Name] = intVal
-				} else {
-					record[field.Name] = value
-				}
-			} else if field.Type == "float" || field.Type == "decimal" || field.Type == "numeric" || field.Type == "price" {
-				if floatVal, err := strconv.ParseFloat(value, 64); err == nil {
-					record[field.Name] = floatVal
-				} else {
-					record[field.Name] = value
-				}
-			} else if field.Type == "bool" || field.Type == "boolean" {
-				record[field.Name] = value == "true"
-			} else {
-				record[field.Name] = value
-			}
+			// Use intelligent field type inference for JSON generation
+			value := fieldInference.GenerateIntelligentValue(field)
+			record[field.Name] = value
 		}
 		records = append(records, record)
 	}
@@ -245,46 +230,13 @@ func writeJSONFile(filename string, data map[string]interface{}) error {
 	return encoder.Encode(data)
 }
 
-// generateFakeValue generates a fake value based on the field type.
+// generateFakeValue generates a fake value based on intelligent field type detection.
 func generateFakeValue(field schema.Field) string {
-	switch field.Type {
-	case "string", "varchar", "text":
-		return faker.GenerateName()
-	case "email":
-		return faker.GenerateEmail()
-	case "int", "integer", "serial":
-		return strconv.Itoa(rand.IntN(1000) + 1)
-	case "float", "decimal", "numeric":
-		return faker.GenerateFloat()
-	case "bool", "boolean":
-		return faker.GenerateBool()
-	case "date":
-		return faker.GenerateDate()
-	case "datetime", "timestamp":
-		return faker.GenerateDateTime()
-	case "phone":
-		return faker.GeneratePhone()
-	case "company":
-		return faker.GenerateCompany()
-	case "address":
-		return faker.GenerateAddress()
-	case "city":
-		return faker.GenerateCity()
-	case "state":
-		return faker.GenerateState()
-	case "zipcode", "zip":
-		return faker.GenerateZipCode()
-	case "uuid":
-		return faker.GenerateUUID()
-	case "price":
-		return faker.GeneratePrice()
-	case "firstname":
-		return faker.GenerateFirstName()
-	case "lastname":
-		return faker.GenerateLastName()
-	default:
-		return faker.GenerateName() // Default to name for unknown types
-	}
+	// Use intelligent field type inference
+	value := fieldInference.GenerateIntelligentValue(field)
+	
+	// Convert to string for CSV compatibility
+	return fmt.Sprintf("%v", value)
 }
 
 // hasReferences checks if any field in the table has reference constraints
@@ -344,41 +296,13 @@ func generateConstrainedValue(field schema.Field, relData *RelationshipData, tab
 
 // generateConstrainedFakeValue generates a fake value with min/max constraints
 func generateConstrainedFakeValue(field schema.Field) interface{} {
-	switch field.Type {
-	case "string", "varchar", "text":
-		return faker.GenerateName()
-	case "email":
-		return faker.GenerateEmail()
-	case "int", "integer", "serial":
-		min := 1
-		max := 1000
-		if field.Constraints != nil {
-			if field.Constraints.MinValue != nil {
-				min = *field.Constraints.MinValue
-			}
-			if field.Constraints.MaxValue != nil {
-				max = *field.Constraints.MaxValue
-			}
-		}
-		return rand.IntN(max-min+1) + min
-	case "float", "decimal", "numeric":
-		value, _ := strconv.ParseFloat(faker.GenerateFloat(), 64)
-		return value
-	case "bool", "boolean":
-		return rand.IntN(2) == 1
-	case "uuid":
-		return faker.GenerateUUID()
-	case "phone":
-		return faker.GeneratePhone()
-	case "address":
-		return faker.GenerateAddress()
-	case "company":
-		return faker.GenerateCompany()
-	case "date", "timestamp":
-		return faker.GenerateDate()
-	default:
-		return faker.GenerateName()
+	// Use intelligent field detection for better field type inference
+	if field.Constraints != nil {
+		return fieldInference.GenerateIntelligentValue(field)
 	}
+	
+	// For unconstrained fields, also use intelligent detection
+	return fieldInference.GenerateIntelligentValue(field)
 }
 
 // generateUniqueValues generates a set of unique values for a field
