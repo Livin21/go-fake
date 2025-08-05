@@ -149,11 +149,154 @@ func NewFieldTypeInference() *FieldTypeInference {
 			// Job title patterns (should come before gender patterns for precedence)
 			"jobtitle": {
 				"job_title", "job", "position", "role", "occupation", "profession",
+				"title", "job_position", "work_title", "career", "designation",
 			},
 			
 			// Gender patterns (removed generic "title" to avoid conflict)
 			"gender": {
 				"gender", "sex", "mr_mrs", "salutation",
+			},
+			
+			// Department patterns
+			"department": {
+				"department", "dept", "division", "team", "unit", "section",
+				"department_name", "work_department", "business_unit",
+			},
+			
+			// Skill patterns
+			"skill": {
+				"skill", "skills", "technology", "technologies", "expertise", 
+				"competency", "competencies", "capability", "abilities", "talent",
+			},
+			
+			// Color patterns
+			"color": {
+				"color", "colour", "hue", "shade", "tint", "pigment",
+				"primary_color", "background_color", "text_color",
+			},
+			
+			// Product patterns
+			"product": {
+				"product", "product_name", "item", "item_name", "merchandise",
+				"goods", "article", "commodity", "sku", "model",
+			},
+			
+			// Brand patterns
+			"brand": {
+				"brand", "brand_name", "manufacturer", "make", "label",
+				"trademark", "vendor", "supplier", "producer",
+			},
+			
+			// Username patterns
+			"username": {
+				"username", "user_name", "login", "handle", "nickname", "nick",
+				"screen_name", "display_name", "alias", "login_name",
+			},
+			
+			// Password patterns
+			"password": {
+				"password", "passwd", "pass", "pwd", "secret", "pin",
+				"passcode", "access_code", "security_code",
+			},
+			
+			// IP Address patterns
+			"ipaddress": {
+				"ip", "ip_address", "ipv4", "ipv6", "host", "server_ip",
+				"client_ip", "remote_ip", "local_ip", "network_address",
+			},
+			
+			// MAC Address patterns
+			"macaddress": {
+				"mac", "mac_address", "hardware_address", "physical_address",
+				"ethernet_address", "wifi_mac", "device_mac",
+			},
+			
+			// Credit Card patterns
+			"creditcard": {
+				"credit_card", "creditcard", "card_number", "cc_number",
+				"payment_card", "debit_card", "card", "cc",
+			},
+			
+			// Bank Account patterns
+			"bankaccount": {
+				"bank_account", "routing_number", "account_number",
+				"iban", "swift", "bic", "sort_code", "account_no",
+			},
+			
+			// Social Security patterns
+			"ssn": {
+				"ssn", "social_security", "social_security_number", "tax_id",
+				"national_id", "personal_id", "citizen_id",
+			},
+			
+			// License patterns
+			"license": {
+				"license", "licence", "license_number", "permit", "certificate",
+				"registration", "license_plate", "driver_license",
+			},
+			
+			// Version patterns
+			"version": {
+				"version", "ver", "release", "build", "revision", "v",
+				"software_version", "app_version", "api_version",
+			},
+			
+			// Status patterns
+			"status": {
+				"status", "state", "condition", "stage", "phase", "mode",
+				"current_status", "order_status", "payment_status",
+			},
+			
+			// Priority patterns
+			"priority": {
+				"priority", "importance", "urgency", "level", "rank", "grade",
+				"priority_level", "severity", "criticality",
+			},
+			
+			// Duration patterns
+			"duration": {
+				"duration", "length", "time", "period", "interval", "span",
+				"elapsed_time", "runtime", "execution_time",
+			},
+			
+			// File patterns
+			"filename": {
+				"file", "filename", "file_name", "document", "attachment",
+				"upload", "media", "resource", "asset", "path",
+			},
+			
+			// Hashtag patterns
+			"hashtag": {
+				"hashtag", "tag", "tags", "keyword", "keywords", "label",
+				"category_tag", "search_tag", "topic",
+			},
+			
+			// Longitude patterns
+			"longitude": {
+				"longitude", "lng", "lon", "long", "x_coordinate", "east_west",
+			},
+			
+			// Latitude patterns  
+			"latitude": {
+				"latitude", "lat", "y_coordinate", "north_south",
+			},
+			
+			// Temperature patterns
+			"temperature": {
+				"temperature", "temp", "celsius", "fahrenheit", "kelvin",
+				"degrees", "thermal", "heat",
+			},
+			
+			// Weight patterns
+			"weight": {
+				"weight", "mass", "kg", "kilogram", "pound", "lb", "gram",
+				"ounce", "ton", "stone",
+			},
+			
+			// Height patterns
+			"height": {
+				"height", "tall", "stature", "elevation", "altitude", "length",
+				"inches", "feet", "cm", "centimeter", "meter",
 			},
 			
 			// Category patterns
@@ -549,6 +692,54 @@ func (f *FieldTypeInference) generateValueByType(fieldType, fieldName string) in
 		return faker.GenerateImageURL()
 	case "jobtitle":
 		return faker.GenerateJobTitle()
+	case "department":
+		return faker.GenerateDepartment()
+	case "skill":
+		return faker.GenerateSkill()
+	case "color":
+		return faker.GenerateColor()
+	case "product":
+		return faker.GenerateProductName()
+	case "brand":
+		return faker.GenerateBrandName()
+	case "username":
+		return faker.GenerateUsername()
+	case "password":
+		return faker.GeneratePassword()
+	case "ipaddress":
+		return faker.GenerateIPAddress()
+	case "macaddress":
+		return faker.GenerateMACAddress()
+	case "creditcard":
+		return faker.GenerateCreditCard()
+	case "bankaccount":
+		return faker.GenerateBankAccount()
+	case "ssn":
+		return faker.GenerateSSN()
+	case "license":
+		return faker.GenerateLicense()
+	case "version":
+		return faker.GenerateVersion()
+	case "status":
+		return faker.GenerateStatus()
+	case "priority":
+		return faker.GeneratePriority()
+	case "duration":
+		return faker.GenerateDuration()
+	case "filename":
+		return faker.GenerateFilename()
+	case "hashtag":
+		return faker.GenerateHashtag()
+	case "longitude":
+		return faker.GenerateLongitude()
+	case "latitude":
+		return faker.GenerateLatitude()
+	case "temperature":
+		return faker.GenerateTemperature()
+	case "weight":
+		return faker.GenerateWeight()
+	case "height":
+		return faker.GenerateHeight()
 	case "age":
 		return rand.IntN(63) + 18 // 18-80 years old
 	case "gender":

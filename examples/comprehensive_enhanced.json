@@ -1,0 +1,67 @@
+{
+  "tables": [
+    {
+      "name": "user_profiles",
+      "fields": [
+        {"name": "user_id", "type": "string", "required": true},
+        {"name": "username", "type": "string", "required": true},
+        {"name": "password", "type": "string", "required": true},
+        {"name": "first_name", "type": "string", "required": true},
+        {"name": "last_name", "type": "string", "required": true},
+        {"name": "email_address", "type": "string", "required": true},
+        {"name": "phone_number", "type": "string", "required": false},
+        {"name": "home_address", "type": "string", "required": false},
+        {"name": "birth_date", "type": "string", "required": false},
+        {"name": "age", "type": "string", "required": false},
+        {"name": "gender", "type": "string", "required": false},
+        {"name": "weight", "type": "string", "required": false},
+        {"name": "height", "type": "string", "required": false},
+        {"name": "profile_picture", "type": "string", "required": false},
+        {"name": "website_url", "type": "string", "required": false},
+        {"name": "is_active", "type": "string", "required": true},
+        {"name": "created_at", "type": "string", "required": true}
+      ]
+    },
+    {
+      "name": "system_info", 
+      "fields": [
+        {"name": "system_id", "type": "string", "required": true},
+        {"name": "ip_address", "type": "string", "required": true},
+        {"name": "mac_address", "type": "string", "required": true},
+        {"name": "version", "type": "string", "required": true},
+        {"name": "status", "type": "string", "required": true},
+        {"name": "priority", "type": "string", "required": false},
+        {"name": "duration", "type": "string", "required": false},
+        {"name": "temperature", "type": "string", "required": false},
+        {"name": "longitude", "type": "string", "required": false},
+        {"name": "latitude", "type": "string", "required": false},
+        {"name": "log_filename", "type": "string", "required": false}
+      ]
+    },
+    {
+      "name": "financial_records",
+      "fields": [
+        {"name": "record_id", "type": "string", "required": true},
+        {"name": "credit_card", "type": "string", "required": false},
+        {"name": "bank_account", "type": "string", "required": false},
+        {"name": "ssn", "type": "string", "required": false},
+        {"name": "license_number", "type": "string", "required": false},
+        {"name": "salary_amount", "type": "string", "required": true},
+        {"name": "account_balance", "type": "string", "required": true}
+      ]
+    },
+    {
+      "name": "content_management",
+      "fields": [
+        {"name": "content_id", "type": "string", "required": true},
+        {"name": "hashtag", "type": "string", "required": false},
+        {"name": "skills", "type": "string", "required": false},
+        {"name": "color", "type": "string", "required": false},
+        {"name": "product_name", "type": "string", "required": false},
+        {"name": "brand_name", "type": "string", "required": false},
+        {"name": "category_type", "type": "string", "required": false},
+        {"name": "description", "type": "string", "required": false}
+      ]
+    }
+  ]
+}
