@@ -258,6 +258,14 @@ if ! create_release_notes "$VERSION" "$RELEASE_NOTES_FILE"; then
     exit 1
 fi
 
+# Store the raw unreleased content for git tag before updating changelog
+UNRELEASED_CONTENT=$(extract_unreleased_notes)
+if [[ $? -ne 0 ]]; then
+    print_error "Failed to extract unreleased content for git tag"
+    rm -f "$RELEASE_NOTES_FILE"
+    exit 1
+fi
+
 # Update CHANGELOG.md
 print_status "Updating CHANGELOG.md for release $VERSION"
 if ! update_changelog "$VERSION"; then
@@ -314,10 +322,10 @@ git commit -m "chore: bump version to $VERSION and update CHANGELOG.md"
 # Create release tag with notes from CHANGELOG.md
 print_status "Creating git tag $VERSION with release notes from CHANGELOG.md"
 
-# Extract just the content part for the git tag (without the header and download instructions)
+# Use the stored unreleased content for the git tag
 TAG_MESSAGE="Release $VERSION
 
-$(extract_unreleased_notes)"
+$UNRELEASED_CONTENT"
 
 git tag -a "$VERSION" -m "$TAG_MESSAGE"
 
