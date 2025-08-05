@@ -1,4 +1,7 @@
 # go-fake: Super fast fake data generator
+
+A powerful, AI-enhanced command-line tool for generating realistic fake data at scale. Built with Go 1.24, go-fake intelligently parses JSON and SQL schemas to create high-quality test data with support for complex relationships, 40+ data types, and enterprise-grade performance optimizations. Perfect for developers, testers, and data engineers who need reliable fake data for development, testing, and prototyping.
+
 ## Features ✨
 
 - **🤖 AI-Enhanced Field Inference**: OpenAI integration for intelligent field type detection
@@ -7,8 +10,8 @@
 - **🔗 Relationship Constraints**: Foreign key relationships and referential integrity
 - **⚙️ Field Constraints**: Min/max values, unique counts, and data validation
 - **📁 Smart Output Format**: JSON schemas → JSON files, SQL schemas → CSV files  
-- **� Format Override**: Force JSON or CSV output regardless of input schema type
-- **�🗂️ Multi-Table Support**: Generate separate files for each table in SQL schemas
+- **🔄 Format Override**: Force JSON or CSV output regardless of input schema type
+- **🗂️ Multi-Table Support**: Generate separate files for each table in SQL schemas
 - **🎯 Rich Data Types**: 40+ supported data types for realistic fake data generation
 - **🔄 Dependency Resolution**: Automatic handling of table dependencies and foreign keys
 - **🛠️ Customizable Output**: Specify number of rows and output file location
